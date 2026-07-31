@@ -6,6 +6,8 @@ the executed halves live in the *_toolchain suites.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from loom import __version__
@@ -62,11 +64,11 @@ def test_cli_run_missing_toolchain_is_actionable(manifest, tmp_path, capsys):
                "--toolchain", "/nonexistent-toolchain"])
     cap = capsys.readouterr()
     assert rc == 2
-    assert "/nonexistent-toolchain" in cap.err     # names the missing root
+    # the message names the RESOLVED root, i.e. the platform's spelling
+    assert str(Path("/nonexistent-toolchain")) in cap.err
     assert "ledger: " in cap.out                   # ledger written even on failure
     ledger_line = [ln for ln in cap.out.splitlines()
                    if ln.startswith("ledger: ")][0]
-    from pathlib import Path
     assert Path(ledger_line.removeprefix("ledger: ")).is_file()
 
 

@@ -149,7 +149,12 @@ def test_ledger_contract_and_failed_job_isolation(tmp_path):
     others = [j for j in led["jobs"] if j not in m301]
     assert len(others) == 2
     assert all(not any("M-301" in f for f in j["failures"]) for j in others)
-    assert all(j["seconds"] > 0 or j["status"] == "ok" for j in others)
+    # `seconds` is round(time.monotonic() delta, 3) and Windows' monotonic
+    # clock is ~15.6 ms coarse, so a job that fails fast records exactly 0.0
+    # there. The "they RAN" claim is carried by the M-301 assertion above;
+    # this one only holds the ledger's shape (doc 99).
+    assert all(isinstance(j["seconds"], (int, float)) and j["seconds"] >= 0
+               for j in others)
 
 
 def test_ledger_echoes_vars_and_tool_identities(tmp_path):

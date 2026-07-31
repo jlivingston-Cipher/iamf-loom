@@ -6,6 +6,8 @@ contract. The subprocess halves live in the *_toolchain suites.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from loom.executor import ExecutionError, Executor, _parse_kernel_json
@@ -76,8 +78,13 @@ def test_configured_toolchain_substitutes(tmp_path, monkeypatch):
     monkeypatch.delenv("SENTINEL_TOOLCHAIN", raising=False)
     monkeypatch.setenv("LOOM_TOOLCHAIN", "/tc-root")
     ex = _executor(tmp_path)
-    assert ex.ledger["toolchain"] == "/tc-root"
-    assert ex._resolve("$TOOLCHAIN/bin/ffmpeg") == "/tc-root/bin/ffmpeg"
+    # The ledger records a RESOLVED root, so it carries the platform's own
+    # spelling — "\\tc-root" on Windows. Plans stay platform-invariant because
+    # they keep $-tokens (doc 97 3.2); resolution is where that stops, which
+    # doc 97 got wrong for loom and ci #2 corrected (doc 99).
+    native = str(Path("/tc-root"))
+    assert Path(ex.ledger["toolchain"]) == Path("/tc-root")
+    assert ex._resolve("$TOOLCHAIN/bin/ffmpeg") == native + "/bin/ffmpeg"
 
 
 # ------------------------------------------------------------------ copy step
