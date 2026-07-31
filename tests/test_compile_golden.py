@@ -65,6 +65,26 @@ def test_golden_plan(project, name, wavs, extra):
     )
 
 
+def test_manifest_fixture_materializes_lf_only(project):
+    """Named regression (doc 97 §3.2) — cross-platform golden identity.
+
+    `manifest_sha256` is taken over the manifest file's RAW BYTES, and every
+    committed golden carries the LF-form hash. Default text-mode writes emit
+    CRLF on Windows, which silently re-hashes the manifest: under a simulated
+    Windows write, 40 of the 51 golden/explain assertions failed. The fixture
+    therefore pins the newline explicitly, and this test is the guard that
+    keeps it pinned.
+    """
+    name = CASES[0][0]
+    text = (MANIFEST_DIR / f"{name}.yaml").read_text()
+    mf = project(text, CASES[0][1], name=f"{name}.yaml")
+    raw = mf.read_bytes()
+    assert b"\r" not in raw, (
+        "manifest fixture wrote CR bytes — manifest_sha256 hashes raw bytes, "
+        "so the committed plan goldens would not reproduce on this platform"
+    )
+
+
 @pytest.mark.parametrize("name,wavs,extra", CASES[:3])
 def test_determinism_compile_twice(project, name, wavs, extra):
     text = (MANIFEST_DIR / f"{name}.yaml").read_text()

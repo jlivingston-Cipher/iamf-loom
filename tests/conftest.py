@@ -17,7 +17,41 @@ import pytest
 
 LOOM_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = LOOM_ROOT.parent
-for p in (LOOM_ROOT, REPO_ROOT / "sentinel-oss", REPO_ROOT / "sentinel-pro"):
+
+
+def find_oss_source() -> Path | None:
+    """Locate an `iamf-sentinel` SOURCE checkout carrying `fixtures/`.
+
+    `fixtures/build.py` ships in the core's source tree, not in the installed
+    wheel, and one module here (`test_executor_units`) builds real IAMF bytes
+    with it. Before doc 97 the sibling directory name `sentinel-oss` — the
+    internal monorepo layout — was assumed, so a standalone clone of this repo
+    failed at *collection* rather than running. Order: `$IAMF_SENTINEL_SRC`,
+    sibling `sentinel-oss/` (internal), sibling `iamf-sentinel/` (public).
+    """
+    cands = []
+    env = os.environ.get("IAMF_SENTINEL_SRC")
+    if env:
+        cands.append(Path(env))
+    cands += [REPO_ROOT / "sentinel-oss", REPO_ROOT / "iamf-sentinel"]
+    for c in cands:
+        if (c / "fixtures" / "build.py").is_file():
+            return c.resolve()
+    return None
+
+
+OSS_SRC = find_oss_source()
+
+NO_OSS_SRC_REASON = (
+    "iamf-sentinel source checkout not found — clone it beside this repo or "
+    "set $IAMF_SENTINEL_SRC (the fixture builders live in the core's source "
+    "tree, not in the installed wheel)"
+)
+
+for p in (LOOM_ROOT, OSS_SRC, REPO_ROOT / "sentinel-oss",
+          REPO_ROOT / "sentinel-pro"):
+    if p is None:
+        continue
     sp = str(p)
     if sp not in sys.path:
         sys.path.insert(0, sp)
@@ -90,7 +124,12 @@ def project(tmp_path: Path):
             fp.parent.mkdir(parents=True, exist_ok=True)
             fp.write_bytes(content)
         mf = tmp_path / name
-        mf.write_text(manifest_text)
+        # newline="\n" is load-bearing, not style: `manifest_sha256` is taken
+        # over the file's RAW BYTES (manifest.py), and the committed plan
+        # goldens carry the LF-form hash. Default text mode writes CRLF on
+        # Windows, which changes the hash and fails all 20 golden plans and
+        # every explain golden (measured: doc 97 §3.2, 40 failures).
+        mf.write_text(manifest_text, newline="\n")
         return mf
 
     return make

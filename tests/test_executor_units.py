@@ -6,17 +6,17 @@ contract. The subprocess halves live in the *_toolchain suites.
 
 from __future__ import annotations
 
-import os
-import sys
-
 import pytest
 
 from loom.executor import ExecutionError, Executor, _parse_kernel_json
 from loom.plan import Plan, Step
 
-# sentinel-oss fixtures build real .iamf bytes for the bitstream read-back arm
-_OSS = os.path.join(os.path.dirname(__file__), "..", "..", "sentinel-oss")
-sys.path.insert(0, os.path.abspath(_OSS))
+# The core's fixture builders make real .iamf bytes for the read-back arm;
+# they live in the iamf-sentinel SOURCE tree, not in the installed wheel.
+from .conftest import NO_OSS_SRC_REASON, OSS_SRC       # noqa: E402
+
+if OSS_SRC is None:                                    # pragma: no cover
+    pytest.skip(NO_OSS_SRC_REASON, allow_module_level=True)
 from fixtures.build import build, channel_spec        # noqa: E402
 
 
