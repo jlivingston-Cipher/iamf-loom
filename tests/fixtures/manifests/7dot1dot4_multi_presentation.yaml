@@ -1,0 +1,16 @@
+loom: 0
+title: Multi presentation 7.1.4
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "Theatrical Mix" }
+    elements: [ { ref: bed } ]
+    loudness_layouts: [ stereo, "5.1", "7.1.4" ]
+  - id: late_night
+    annotations: { en-us: "Late Night (quiet)" }
+    elements: [ { ref: bed, gain_db: -6, headphones: binaural } ]
+targets:
+  - { format: iamf, out: dist/multi.iamf }

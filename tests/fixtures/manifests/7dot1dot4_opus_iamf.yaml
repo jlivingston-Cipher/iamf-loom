@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 7.1.4 opus raw
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "7.1.4 Mix" }
+    elements: [ { ref: bed } ]
+targets:
+  - { format: iamf, out: dist/7dot1dot4.iamf }

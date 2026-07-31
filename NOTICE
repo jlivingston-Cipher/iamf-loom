@@ -1,0 +1,14 @@
+iamf-loom
+Copyright 2026 The iamf-loom authors
+
+This product is original work. All third-party tools (encoder_main,
+decoder_main, FFmpeg, MP4Box) are invoked strictly as subprocesses across
+CLI boundaries; no code is linked against or derived from GPL/LGPL or
+reference-implementation sources. The textproto emitter, the manifest
+schema validator, and the compile-time ISO-BMFF video probe are original
+clean-room implementations (the probe written from ISO/IEC 14496-12).
+
+"IAMF" is used descriptively. "Eclipsa" is a trademark of its owner and
+is not used in this project's naming. "YouTube" is a trademark of Google
+LLC, used nominatively to identify a delivery target; this project is
+independent and is not affiliated with or endorsed by Google or YouTube.

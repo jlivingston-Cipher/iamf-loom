@@ -1,0 +1,111 @@
+{
+  "manifest": "multilang_3lang_iamf.yaml (bed 7.1.4 + 3 stereo VO stems)",
+  "run_ok": true,
+  "profile": "base",
+  "gate": {
+    "tier": "l1l2+l3",
+    "passed": true,
+    "fail_ids": [],
+    "findings": [
+      {
+        "id": "S-303",
+        "severity": "INFO",
+        "message": "no layout advertises true peak (info_type true-peak bit unset)"
+      },
+      {
+        "id": "S-303",
+        "severity": "INFO",
+        "message": "no layout advertises true peak (info_type true-peak bit unset)"
+      },
+      {
+        "id": "S-303",
+        "severity": "INFO",
+        "message": "no layout advertises true peak (info_type true-peak bit unset)"
+      }
+    ]
+  },
+  "mix_presentations": [
+    {
+      "id": 42,
+      "langs": [
+        "en-us"
+      ],
+      "annotations": [
+        "English"
+      ],
+      "n_elements": 2,
+      "declared_loudness": [
+        [
+          -10.082,
+          -2.852
+        ],
+        [
+          -8.988,
+          -12.039
+        ]
+      ]
+    },
+    {
+      "id": 43,
+      "langs": [
+        "de-de"
+      ],
+      "annotations": [
+        "Deutsch"
+      ],
+      "n_elements": 2,
+      "declared_loudness": [
+        [
+          -10.082,
+          -2.852
+        ],
+        [
+          -8.988,
+          -12.039
+        ]
+      ]
+    },
+    {
+      "id": 44,
+      "langs": [
+        "fr-fr"
+      ],
+      "annotations": [
+        "Francais"
+      ],
+      "n_elements": 2,
+      "declared_loudness": [
+        [
+          -10.082,
+          -2.852
+        ],
+        [
+          -8.988,
+          -12.039
+        ]
+      ]
+    }
+  ],
+  "elements": {
+    "300": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "301": [
+      7
+    ],
+    "302": [
+      8
+    ],
+    "303": [
+      9
+    ]
+  },
+  "output_sha256": "32f5d11d5b4045dfece23c8990b77e3399df17fbe5ad1532e74189b9d895b619",
+  "output_bytes": 444275
+}

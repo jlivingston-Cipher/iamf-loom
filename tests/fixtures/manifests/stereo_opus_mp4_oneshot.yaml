@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 stereo opus AV oneshot
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: stereo }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "Stereo Mix" }
+    elements: [ { ref: bed } ]
+targets:
+  - { format: mp4, out: dist/stereo_av.mp4, video: v.mp4 }

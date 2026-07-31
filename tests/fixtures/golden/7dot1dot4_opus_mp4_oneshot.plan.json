@@ -1,0 +1,300 @@
+{
+  "loom_plan": 1,
+  "title": "WP1 7.1.4 opus AV oneshot",
+  "manifest_sha256": "164fed589719e8e29f057d556b5a38e902bb95ea2c44849ffd230641fd449c57",
+  "tokens": {
+    "toolchain": "$TOOLCHAIN",
+    "work": "$WORK",
+    "outdir": "$OUTDIR",
+    "srcdir": "$SRCDIR"
+  },
+  "sources": {
+    "main": {
+      "path": "wavs/main.wav",
+      "sha256": "2d8b61cc3976ae8bb4bca24c8cebe34866f9ab2b87e5f94b1a4a3248b18aabdb",
+      "kind": "bed",
+      "layout": "7.1.4",
+      "order": "bs2051",
+      "norm": null,
+      "channels": 12,
+      "sample_rate": 48000,
+      "bits": 24,
+      "frames": 4800,
+      "ambisonics_order": null
+    }
+  },
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "src": "$SRCDIR/wavs/main.wav",
+      "dst": "$WORK/wav/main.wav",
+      "writes": [
+        "$WORK/wav/main.wav"
+      ],
+      "rationale": "single input_wav_directory for encoder_main; staged copy pins the bytes the plan's source hash refers to"
+    },
+    {
+      "id": "t00-7dot1dot4_av-p1",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "argv": [
+        "$TOOLCHAIN/bin/ffmpeg-install/bin/ffmpeg",
+        "-y",
+        "-hide_banner",
+        "-i",
+        "$WORK/wav/main.wav",
+        "-filter_complex",
+        "[0:a]pan=stereo|c0=c0|c1=c1[frontLR];[0:a]pan=stereo|c0=c4|c1=c5[sideLR];[0:a]pan=stereo|c0=c6|c1=c7[backLR];[0:a]pan=stereo|c0=c8|c1=c9[topfLR];[0:a]pan=stereo|c0=c10|c1=c11[topbLR];[0:a]pan=mono|c0=c2[center];[0:a]pan=mono|c0=c3[lfe]",
+        "-map",
+        "[frontLR]",
+        "-map",
+        "[sideLR]",
+        "-map",
+        "[backLR]",
+        "-map",
+        "[topfLR]",
+        "-map",
+        "[topbLR]",
+        "-map",
+        "[center]",
+        "-map",
+        "[lfe]",
+        "-c:a:0",
+        "libopus",
+        "-b:a:0",
+        "128000",
+        "-c:a:1",
+        "libopus",
+        "-b:a:1",
+        "128000",
+        "-c:a:2",
+        "libopus",
+        "-b:a:2",
+        "128000",
+        "-c:a:3",
+        "libopus",
+        "-b:a:3",
+        "128000",
+        "-c:a:4",
+        "libopus",
+        "-b:a:4",
+        "128000",
+        "-c:a:5",
+        "libopus",
+        "-b:a:5",
+        "64000",
+        "-c:a:6",
+        "libopus",
+        "-b:a:6",
+        "64000",
+        "-stream_group",
+        "type=iamf_audio_element:id=1:st=0:st=1:st=2:st=3:st=4:st=5:st=6:audio_element_type=channel,layer=ch_layout=7.1.4",
+        "-stream_group",
+        "type=iamf_mix_presentation:id=2:stg=0:annotations=en-us=7.1.4 Mix,submix=parameter_id=100:parameter_rate=48000:default_mix_gain=0.0|element=stg=0:parameter_id=101:parameter_rate=48000:default_mix_gain=0.0:annotations=en-us=bed|layout=sound_system=stereo|layout=sound_system=7.1.4",
+        "-streamid",
+        "0:0",
+        "-streamid",
+        "1:1",
+        "-streamid",
+        "2:2",
+        "-streamid",
+        "3:3",
+        "-streamid",
+        "4:4",
+        "-streamid",
+        "5:5",
+        "-streamid",
+        "6:6",
+        "$WORK/os/t00-7dot1dot4_av.pass1.iamf"
+      ],
+      "reads": [
+        "$WORK/wav/main.wav"
+      ],
+      "writes": [
+        "$WORK/os/t00-7dot1dot4_av.pass1.iamf"
+      ],
+      "rationale": "pass 1 of the two-pass loudness flow; never a deliverable (FFmpeg alone writes 0.0 loudness, F7)"
+    },
+    {
+      "id": "t00-7dot1dot4_av-render-stereo",
+      "kind": "render",
+      "tool": "decoder_main",
+      "argv": [
+        "$TOOLCHAIN/src/build-iamf/decoder_main",
+        "--input_filename=$WORK/os/t00-7dot1dot4_av.pass1.iamf",
+        "--output_filename=$WORK/os/t00-7dot1dot4_av.stereo.wav",
+        "--output_layout=2.0"
+      ],
+      "reads": [
+        "$WORK/os/t00-7dot1dot4_av.pass1.iamf"
+      ],
+      "writes": [
+        "$WORK/os/t00-7dot1dot4_av.stereo.wav"
+      ],
+      "rationale": "reference-render the stereo loudness layout for BS.1770 measurement"
+    },
+    {
+      "id": "t00-7dot1dot4_av-measure-stereo",
+      "kind": "measure_bs1770",
+      "tool": "sentinel-dsp",
+      "argv": [
+        "$TOOLCHAIN/bin/sentinel-dsp",
+        "$WORK/os/t00-7dot1dot4_av.stereo.wav",
+        "--layout",
+        "2.0"
+      ],
+      "reads": [
+        "$WORK/os/t00-7dot1dot4_av.stereo.wav"
+      ],
+      "rationale": "BS.1770-4 via the sentinel-dsp kernel (F34: the declared values must be conformant; ebur128's BACK_MASK is F29-non-conformant on 7.1.x); computed, never typed"
+    },
+    {
+      "id": "t00-7dot1dot4_av-render-7_1_4",
+      "kind": "render",
+      "tool": "decoder_main",
+      "argv": [
+        "$TOOLCHAIN/src/build-iamf/decoder_main",
+        "--input_filename=$WORK/os/t00-7dot1dot4_av.pass1.iamf",
+        "--output_filename=$WORK/os/t00-7dot1dot4_av.7_1_4.wav",
+        "--output_layout=7.1.4"
+      ],
+      "reads": [
+        "$WORK/os/t00-7dot1dot4_av.pass1.iamf"
+      ],
+      "writes": [
+        "$WORK/os/t00-7dot1dot4_av.7_1_4.wav"
+      ],
+      "rationale": "reference-render the 7.1.4 loudness layout for BS.1770 measurement"
+    },
+    {
+      "id": "t00-7dot1dot4_av-measure-7_1_4",
+      "kind": "measure_bs1770",
+      "tool": "sentinel-dsp",
+      "argv": [
+        "$TOOLCHAIN/bin/sentinel-dsp",
+        "$WORK/os/t00-7dot1dot4_av.7_1_4.wav",
+        "--layout",
+        "7.1.4"
+      ],
+      "reads": [
+        "$WORK/os/t00-7dot1dot4_av.7_1_4.wav"
+      ],
+      "rationale": "BS.1770-4 via the sentinel-dsp kernel (F34: the declared values must be conformant; ebur128's BACK_MASK is F29-non-conformant on 7.1.x); computed, never typed"
+    },
+    {
+      "id": "t00-7dot1dot4_av-p2",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "argv": [
+        "$TOOLCHAIN/bin/ffmpeg-install/bin/ffmpeg",
+        "-y",
+        "-hide_banner",
+        "-i",
+        "$WORK/wav/main.wav",
+        "-i",
+        "$SRCDIR/v.mp4",
+        "-filter_complex",
+        "[0:a]pan=stereo|c0=c0|c1=c1[frontLR];[0:a]pan=stereo|c0=c4|c1=c5[sideLR];[0:a]pan=stereo|c0=c6|c1=c7[backLR];[0:a]pan=stereo|c0=c8|c1=c9[topfLR];[0:a]pan=stereo|c0=c10|c1=c11[topbLR];[0:a]pan=mono|c0=c2[center];[0:a]pan=mono|c0=c3[lfe]",
+        "-map",
+        "[frontLR]",
+        "-map",
+        "[sideLR]",
+        "-map",
+        "[backLR]",
+        "-map",
+        "[topfLR]",
+        "-map",
+        "[topbLR]",
+        "-map",
+        "[center]",
+        "-map",
+        "[lfe]",
+        "-map",
+        "1:v",
+        "-c:v",
+        "copy",
+        "-c:a:0",
+        "libopus",
+        "-b:a:0",
+        "128000",
+        "-c:a:1",
+        "libopus",
+        "-b:a:1",
+        "128000",
+        "-c:a:2",
+        "libopus",
+        "-b:a:2",
+        "128000",
+        "-c:a:3",
+        "libopus",
+        "-b:a:3",
+        "128000",
+        "-c:a:4",
+        "libopus",
+        "-b:a:4",
+        "128000",
+        "-c:a:5",
+        "libopus",
+        "-b:a:5",
+        "64000",
+        "-c:a:6",
+        "libopus",
+        "-b:a:6",
+        "64000",
+        "-stream_group",
+        "type=iamf_audio_element:id=1:st=0:st=1:st=2:st=3:st=4:st=5:st=6:audio_element_type=channel,layer=ch_layout=7.1.4",
+        "-stream_group",
+        "type=iamf_mix_presentation:id=2:stg=0:annotations=en-us=7.1.4 Mix,submix=parameter_id=100:parameter_rate=48000:default_mix_gain=0.0|element=stg=0:parameter_id=101:parameter_rate=48000:default_mix_gain=0.0:annotations=en-us=bed|layout=sound_system=stereo:integrated_loudness=${measure:t00-7dot1dot4_av-measure-stereo:il}:digital_peak=${measure:t00-7dot1dot4_av-measure-stereo:dp}:true_peak=${measure:t00-7dot1dot4_av-measure-stereo:tp}|layout=sound_system=7.1.4:integrated_loudness=${measure:t00-7dot1dot4_av-measure-7_1_4:il}:digital_peak=${measure:t00-7dot1dot4_av-measure-7_1_4:dp}:true_peak=${measure:t00-7dot1dot4_av-measure-7_1_4:tp}",
+        "-streamid",
+        "0:0",
+        "-streamid",
+        "1:1",
+        "-streamid",
+        "2:2",
+        "-streamid",
+        "3:3",
+        "-streamid",
+        "4:4",
+        "-streamid",
+        "5:5",
+        "-streamid",
+        "6:6",
+        "-streamid",
+        "7:7",
+        "-movflags",
+        "+faststart",
+        "$OUTDIR/dist/7dot1dot4_av.mp4"
+      ],
+      "reads": [
+        "$WORK/wav/main.wav",
+        "$SRCDIR/v.mp4"
+      ],
+      "writes": [
+        "$OUTDIR/dist/7dot1dot4_av.mp4"
+      ],
+      "rationale": "Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7 closed); F4 order and F6 streamids compiler-enforced"
+    }
+  ],
+  "targets": [
+    {
+      "out": "dist/7dot1dot4_av.mp4",
+      "format": "mp4",
+      "backend": "ffmpeg_oneshot",
+      "muxer": "ffmpeg",
+      "preset": null,
+      "profile": "simple",
+      "steps": [
+        "s00-stage-src",
+        "t00-7dot1dot4_av-p1",
+        "t00-7dot1dot4_av-render-stereo",
+        "t00-7dot1dot4_av-measure-stereo",
+        "t00-7dot1dot4_av-render-7_1_4",
+        "t00-7dot1dot4_av-measure-7_1_4",
+        "t00-7dot1dot4_av-p2"
+      ],
+      "rationale": "Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7 closed); F4 order and F6 streamids compiler-enforced"
+    }
+  ]
+}

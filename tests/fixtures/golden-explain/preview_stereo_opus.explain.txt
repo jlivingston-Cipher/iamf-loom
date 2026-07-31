@@ -1,0 +1,69 @@
+LOOM EXPLAIN -- R9 stereo binaural preview opus
+=============================================
+manifest sha256: d48e52618af4c1f1fd04243b18d91cb7a3a958e7ae1df427e6cdddeb6b271793
+1 source(s) | 1 target(s) | 7 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout stereo, order bs2051
+    probed:   2 ch, 48000 Hz, 24-bit, 4800 frames, sha256 5f295631b348
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: review/stereo.binaural.opus
+  format: preview   profile: simple   backend: iamftools
+  why this route:
+    preview: stereo binaural review render (R9). iamf-tools primary encode
+    (ADR-1) to an intermediate .iamf that is never a deliverable, rendered by
+    decoder_main --output_layout=Binaural (the obr renderer, invoked
+    subprocess-only — ADR-4). Single-oracle render: iamfdec's binauralizer is
+    disabled toolchain-wide (F10), so verification is structural + spectral,
+    never cross-decoder.
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-stereo_binaural-cfg  [write_config, internal]
+        to $WORK/cfg/t00-stereo_binaural.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     3. t00-stereo_binaural-enc  [encode, encoder_main]
+        writes $WORK/prev/t00-stereo_binaural/enc/t00-stereo_binaural.iamf
+        why: preview: stereo binaural review render (R9). iamf-tools primary
+          encode (ADR-1) to an intermediate .iamf that is never a deliverable,
+          rendered by decoder_main --output_layout=Binaural (the obr renderer,
+          invoked subprocess-only — ADR-4). Single-oracle render: iamfdec's
+          binauralizer is disabled toolchain-wide (F10), so verification is
+          structural + spectral, never cross-decoder.
+     4. t00-stereo_binaural-render-binaural  [render, decoder_main]
+        writes $WORK/prev/t00-stereo_binaural/binaural.wav
+        why: R9: binaural stereo render of the gate-validated intermediate via
+          decoder_main --output_layout=Binaural (obr, subprocess — ADR-4);
+          single-oracle: iamfdec's binauralizer is disabled toolchain-wide
+          (F10)
+     5. t00-stereo_binaural-measure-binaural  [measure_bs1770, sentinel-dsp]
+        why: R9: review-copy loudness (sentinel-dsp kernel — conformant
+          engine, F34), recorded in the ledger only — wav/ogg carry no IAMF
+          loudness structures, so nothing is embedded (noted, not glossed)
+     6. t00-stereo_binaural-verify  [verify_preview, ffmpeg]
+        why: R9 accept: 2 ch at the source rate, frame count exact vs the
+          source program, measured IL above the -70 LUFS gating floor
+          (digital-silence guard); per-channel peaks recorded, not run-failing
+          (a quiet channel is a program fact)
+     7. t00-stereo_binaural-opus  [encode, ffmpeg]
+        writes $OUTDIR/review/stereo.binaural.opus
+        why: R9 review copy: Opus-in-Ogg at the fixed 128k review bitrate;
+          -bitexact keeps version-bearing tags out of the deliverable (the
+          doc-44 date-stamp lesson, applied at design time)
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.

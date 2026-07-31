@@ -1,0 +1,85 @@
+LOOM EXPLAIN -- Multilang Dub Preview
+===================================
+manifest sha256: f262628638cbb1f949e5afbea75627268987a78ec99ed6cfa62a1f4ec179c22a
+3 source(s) | 1 target(s) | 9 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 7.1.4, order bs2051
+    probed:   12 ch, 48000 Hz, 24-bit, 4800 frames, sha256 2d8b61cc3976
+  vo_de: wavs/vo_de.wav
+    declared: kind bed, layout stereo, order bs2051
+    probed:   2 ch, 48000 Hz, 24-bit, 4800 frames, sha256 5f295631b348
+  vo_en: wavs/vo_en.wav
+    declared: kind bed, layout stereo, order bs2051
+    probed:   2 ch, 48000 Hz, 24-bit, 4800 frames, sha256 5f295631b348
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: review/dub_de.binaural.wav
+  format: preview   profile: base   backend: iamftools
+  why this route:
+    preview: stereo binaural review render (R9). iamf-tools primary encode
+    (ADR-1) to an intermediate .iamf that is never a deliverable, rendered by
+    decoder_main --output_layout=Binaural (the obr renderer, invoked
+    subprocess-only — ADR-4). Single-oracle render: iamfdec's binauralizer is
+    disabled toolchain-wide (F10), so verification is structural + spectral,
+    never cross-decoder.
+  steps (execution order):
+     1. s00-stage-0-main  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. s00-stage-1-vo_en  [stage_input, internal]
+        from $SRCDIR/wavs/vo_en.wav; to $WORK/wav/vo_en.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     3. s00-stage-2-vo_de  [stage_input, internal]
+        from $SRCDIR/wavs/vo_de.wav; to $WORK/wav/vo_de.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     4. t00-dub_de_binaural-cfg  [write_config, internal]
+        to $WORK/cfg/t00-dub_de_binaural.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     5. t00-dub_de_binaural-enc  [encode, encoder_main]
+        writes $WORK/prev/t00-dub_de_binaural/enc/t00-dub_de_binaural.iamf
+        why: preview: stereo binaural review render (R9). iamf-tools primary
+          encode (ADR-1) to an intermediate .iamf that is never a deliverable,
+          rendered by decoder_main --output_layout=Binaural (the obr renderer,
+          invoked subprocess-only — ADR-4). Single-oracle render: iamfdec's
+          binauralizer is disabled toolchain-wide (F10), so verification is
+          structural + spectral, never cross-decoder.
+     6. t00-dub_de_binaural-render-binaural  [render, decoder_main]
+        writes $WORK/prev/t00-dub_de_binaural/binaural.wav
+        why: R9: binaural stereo render of the gate-validated intermediate via
+          decoder_main --output_layout=Binaural (obr, subprocess — ADR-4);
+          single-oracle: iamfdec's binauralizer is disabled toolchain-wide
+          (F10); R8: renders presentation 'dub-de-de' (mix_presentation_id 43
+          pinned — D-Z6; the selection, defaulting to the first presentation,
+          is a render choice, never metadata)
+     7. t00-dub_de_binaural-measure-binaural  [measure_bs1770, sentinel-dsp]
+        why: R9: review-copy loudness (sentinel-dsp kernel — conformant
+          engine, F34), recorded in the ledger only — wav/ogg carry no IAMF
+          loudness structures, so nothing is embedded (noted, not glossed)
+     8. t00-dub_de_binaural-verify  [verify_preview, ffmpeg]
+        why: R9 accept: 2 ch at the source rate, frame count exact vs the
+          source program, measured IL above the -70 LUFS gating floor
+          (digital-silence guard); per-channel peaks recorded, not run-failing
+          (a quiet channel is a program fact)
+     9. t00-dub_de_binaural-out  [copy, internal]
+        from $WORK/prev/t00-dub_de_binaural/binaural.wav; to
+          $OUTDIR/review/dub_de.binaural.wav
+        why: deliver the verified binaural render to the target path (delivery
+          is the last step — a failed verify ships nothing)
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.

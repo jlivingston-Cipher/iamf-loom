@@ -1,0 +1,246 @@
+{
+  "loom_version": "0.5.0",
+  "title": "R9 evidence",
+  "manifest_sha256": "bce4ee5daf6fd54f4641e86bbd59e6e8f3715fb68808066cd71485578cb4a058",
+  "toolchain": "/home/claude/iamf-wp1",
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.002
+    },
+    {
+      "id": "t00-r9_binaural-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t00-r9_binaural-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.311
+    },
+    {
+      "id": "t00-r9_binaural-render-binaural",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.162
+    },
+    {
+      "id": "t00-r9_binaural-measure-binaural",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -11.4,
+        "dp": -3.316197,
+        "tp": -3.3
+      },
+      "ok": true,
+      "seconds": 0.038
+    },
+    {
+      "id": "t00-r9_binaural-verify",
+      "kind": "verify_preview",
+      "tool": "ffmpeg",
+      "channels": 2,
+      "sample_rate": 48000,
+      "bits": 32,
+      "frames": 144000,
+      "il_lufs": -11.4,
+      "overall_peak_dbfs": -3.316197,
+      "per_channel_peak_dbfs": [
+        -3.364666,
+        -3.316197
+      ],
+      "container": "wav",
+      "ok": true,
+      "seconds": 0.011
+    },
+    {
+      "id": "t00-r9_binaural-out",
+      "kind": "copy",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.001
+    },
+    {
+      "id": "t01-r9_binaural-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t01-r9_binaural-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.311
+    },
+    {
+      "id": "t01-r9_binaural-render-binaural",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.156
+    },
+    {
+      "id": "t01-r9_binaural-measure-binaural",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -11.4,
+        "dp": -3.316197,
+        "tp": -3.3
+      },
+      "ok": true,
+      "seconds": 0.034
+    },
+    {
+      "id": "t01-r9_binaural-verify",
+      "kind": "verify_preview",
+      "tool": "ffmpeg",
+      "channels": 2,
+      "sample_rate": 48000,
+      "bits": 32,
+      "frames": 144000,
+      "il_lufs": -11.4,
+      "overall_peak_dbfs": -3.316197,
+      "per_channel_peak_dbfs": [
+        -3.364666,
+        -3.316197
+      ],
+      "container": "opus",
+      "ok": true,
+      "seconds": 0.01
+    },
+    {
+      "id": "t01-r9_binaural-opus",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.062
+    }
+  ],
+  "measured_loudness": {
+    "t00-r9_binaural-measure-binaural": {
+      "il": -11.4,
+      "dp": -3.316197,
+      "tp": -3.3
+    },
+    "t01-r9_binaural-measure-binaural": {
+      "il": -11.4,
+      "dp": -3.316197,
+      "tp": -3.3
+    }
+  },
+  "normalize": {},
+  "gate": {
+    "review/r9.binaural.wav": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-311",
+          "severity": "WARN",
+          "message": "measured digital peak -17.74 dBFS differs from declared -18.06 dBFS by +0.32 dB (oracle decoder_main)"
+        },
+        {
+          "id": "S-303",
+          "severity": "INFO",
+          "message": "no layout advertises true peak (info_type true-peak bit unset)"
+        }
+      ],
+      "gated_path": "$WORK/prev/t00-r9_binaural/enc/t00-r9_binaural.iamf",
+      "note": "preview: the deliverable is a render of gate-validated bytes (R9, D-Y5)"
+    },
+    "review/r9.binaural.opus": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-311",
+          "severity": "WARN",
+          "message": "measured digital peak -17.74 dBFS differs from declared -18.06 dBFS by +0.32 dB (oracle decoder_main)"
+        },
+        {
+          "id": "S-303",
+          "severity": "INFO",
+          "message": "no layout advertises true peak (info_type true-peak bit unset)"
+        }
+      ],
+      "gated_path": "$WORK/prev/t01-r9_binaural/enc/t01-r9_binaural.iamf",
+      "note": "preview: the deliverable is a render of gate-validated bytes (R9, D-Y5)"
+    }
+  },
+  "outputs": {
+    "review/r9.binaural.wav": {
+      "sha256": "5e2007db0b0ed77143209040829c2cb9b0508eef1cd377dffb94109c2f3a2914",
+      "bytes": 1152080,
+      "backend": "iamftools",
+      "profile": "simple"
+    },
+    "review/r9.binaural.opus": {
+      "sha256": "83fbf82c789374d07ccb30905c406ccec18813762ca0e0cdef3aae4dbad8ee59",
+      "bytes": 73143,
+      "backend": "iamftools",
+      "profile": "simple"
+    }
+  },
+  "preview": {
+    "t00-r9_binaural-verify": {
+      "container": "wav",
+      "channels": 2,
+      "sample_rate": 48000,
+      "bits": 32,
+      "frames": 144000,
+      "il_lufs": -11.4,
+      "overall_peak_dbfs": -3.316197,
+      "per_channel_peak_dbfs": [
+        -3.364666,
+        -3.316197
+      ],
+      "loudness_note": "recorded only \u2014 wav/ogg carry no IAMF loudness structures (R9)",
+      "oracle_note": "single-oracle render: iamfdec binauralizer disabled toolchain-wide (F10)",
+      "ok": true
+    },
+    "t01-r9_binaural-verify": {
+      "container": "opus",
+      "channels": 2,
+      "sample_rate": 48000,
+      "bits": 32,
+      "frames": 144000,
+      "il_lufs": -11.4,
+      "overall_peak_dbfs": -3.316197,
+      "per_channel_peak_dbfs": [
+        -3.364666,
+        -3.316197
+      ],
+      "loudness_note": "recorded only \u2014 wav/ogg carry no IAMF loudness structures (R9)",
+      "oracle_note": "single-oracle render: iamfdec binauralizer disabled toolchain-wide (F10)",
+      "ok": true
+    }
+  },
+  "ok": true
+}

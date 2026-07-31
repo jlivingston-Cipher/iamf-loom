@@ -1,0 +1,152 @@
+LOOM EXPLAIN -- R9 normalized binaural preview
+============================================
+manifest sha256: 1f8091f356da40cec5e626e77360eacdb1aa42f8d321339a5ea6d8643f817d79
+1 source(s) | 2 target(s) | 22 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 7.1.4, order bs2051
+    probed:   12 ch, 48000 Hz, 24-bit, 4800 frames, sha256 2d8b61cc3976
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  normalize: -16 LUFS -- gain-ride the source, then re-measure the ridden
+    audio; accept within +/-0.3 LU; clip guard: ridden digital peak must stay
+    below -0.05 dBFS (Loom is not a limiter)
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/2: dist/norm714.iamf
+  format: iamf   profile: simple   backend: iamftools
+  why this route:
+    raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured loudness,
+    profile control)
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-norm714-cfg-pre  [write_config, internal]
+        to $WORK/cfg/t00-norm714-pre.textproto
+        why: R3 pass-A: pre-ride encode config (loudness measured on the
+          un-ridden program)
+     3. t00-norm714-enc-pre  [encode, encoder_main]
+        writes $WORK/norm/t00-norm714/enc-pre/t00-norm714-pre.iamf
+        why: R3 pass-A encode; never a deliverable
+     4. t00-norm714-render-anchor-pre  [render, decoder_main]
+        writes $WORK/norm/t00-norm714/anchor-pre.wav
+        why: R3: reference-render the anchor layout (stereo — the first
+          effective loudness layout) pre-ride
+     5. t00-norm714-measure-anchor-pre  [measure_bs1770, sentinel-dsp]
+        why: R3: pre-ride BS.1770-4 on the anchor render (sentinel-dsp kernel
+          — conformant engine, F34); the ride gain derives from THIS
+          measurement only
+     6. t00-norm714-ride  [gain_ride, ffmpeg]
+        writes $WORK/wavn/t00-norm714/main.wav
+        resolves at execution: ${gain:t00-norm714-measure-anchor-pre:-16.00}
+        why: R3 gain-ride to -16 LUFS (gain = target - measured, resolved at
+          execution; clip guard: ridden digital peak must stay below -0.05
+          dBFS — Loom is not a limiter)
+     7. t00-norm714-cfg  [write_config, internal]
+        to $WORK/cfg/t00-norm714.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     8. t00-norm714-enc  [encode, encoder_main]
+        writes $WORK/enc/t00-norm714/t00-norm714.iamf
+        why: raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured
+          loudness, profile control)
+     9. t00-norm714-verify  [verify_loudness, internal]
+        why: R3 accept: the anchor-layout loudness that encoder_main
+          independently measured on the ridden audio must land within ±0.3 LU
+          of the normalize target (read back from the bitstream via the
+          sentinel clean-room parser)
+    10. t00-norm714-out  [copy, internal]
+        from $WORK/enc/t00-norm714/t00-norm714.iamf; to
+          $OUTDIR/dist/norm714.iamf
+        why: deliver the encoder output to the target path
+
+TARGET 2/2: review/norm714.binaural.wav
+  format: preview   profile: simple   backend: iamftools
+  why this route:
+    preview: stereo binaural review render (R9). iamf-tools primary encode
+    (ADR-1) to an intermediate .iamf that is never a deliverable, rendered by
+    decoder_main --output_layout=Binaural (the obr renderer, invoked
+    subprocess-only — ADR-4). Single-oracle render: iamfdec's binauralizer is
+    disabled toolchain-wide (F10), so verification is structural + spectral,
+    never cross-decoder.
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t01-norm714_binaural-cfg-pre  [write_config, internal]
+        to $WORK/cfg/t01-norm714_binaural-pre.textproto
+        why: R3 pass-A: pre-ride encode config (loudness measured on the
+          un-ridden program)
+     3. t01-norm714_binaural-enc-pre  [encode, encoder_main]
+        writes
+          $WORK/norm/t01-norm714_binaural/enc-pre/t01-norm714_binaural-pre.iamf
+        why: R3 pass-A encode; never a deliverable
+     4. t01-norm714_binaural-render-anchor-pre  [render, decoder_main]
+        writes $WORK/norm/t01-norm714_binaural/anchor-pre.wav
+        why: R3: reference-render the anchor layout (stereo — the first
+          effective loudness layout) pre-ride
+     5. t01-norm714_binaural-measure-anchor-pre  [measure_bs1770, sentinel-dsp]
+        why: R3: pre-ride BS.1770-4 on the anchor render (sentinel-dsp kernel
+          — conformant engine, F34); the ride gain derives from THIS
+          measurement only
+     6. t01-norm714_binaural-ride  [gain_ride, ffmpeg]
+        writes $WORK/wavn/t01-norm714_binaural/main.wav
+        resolves at execution:
+          ${gain:t01-norm714_binaural-measure-anchor-pre:-16.00}
+        why: R3 gain-ride to -16 LUFS (gain = target - measured, resolved at
+          execution; clip guard: ridden digital peak must stay below -0.05
+          dBFS — Loom is not a limiter)
+     7. t01-norm714_binaural-cfg  [write_config, internal]
+        to $WORK/cfg/t01-norm714_binaural.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     8. t01-norm714_binaural-enc  [encode, encoder_main]
+        writes $WORK/prev/t01-norm714_binaural/enc/t01-norm714_binaural.iamf
+        why: preview: stereo binaural review render (R9). iamf-tools primary
+          encode (ADR-1) to an intermediate .iamf that is never a deliverable,
+          rendered by decoder_main --output_layout=Binaural (the obr renderer,
+          invoked subprocess-only — ADR-4). Single-oracle render: iamfdec's
+          binauralizer is disabled toolchain-wide (F10), so verification is
+          structural + spectral, never cross-decoder.
+     9. t01-norm714_binaural-verify-norm  [verify_loudness, internal]
+        why: R3 accept on the preview's intermediate: the preview must render
+          the normalized program, so the anchor-layout loudness encoder_main
+          measured on the ridden audio is verified within ±0.3 LU before any
+          render happens
+    10. t01-norm714_binaural-render-binaural  [render, decoder_main]
+        writes $WORK/prev/t01-norm714_binaural/binaural.wav
+        why: R9: binaural stereo render of the gate-validated intermediate via
+          decoder_main --output_layout=Binaural (obr, subprocess — ADR-4);
+          single-oracle: iamfdec's binauralizer is disabled toolchain-wide
+          (F10)
+    11. t01-norm714_binaural-measure-binaural  [measure_bs1770, sentinel-dsp]
+        why: R9: review-copy loudness (sentinel-dsp kernel — conformant
+          engine, F34), recorded in the ledger only — wav/ogg carry no IAMF
+          loudness structures, so nothing is embedded (noted, not glossed)
+    12. t01-norm714_binaural-verify  [verify_preview, ffmpeg]
+        why: R9 accept: 2 ch at the source rate, frame count exact vs the
+          source program, measured IL above the -70 LUFS gating floor
+          (digital-silence guard); per-channel peaks recorded, not run-failing
+          (a quiet channel is a program fact)
+    13. t01-norm714_binaural-out  [copy, internal]
+        from $WORK/prev/t01-norm714_binaural/binaural.wav; to
+          $OUTDIR/review/norm714.binaural.wav
+        why: deliver the verified binaural render to the target path (delivery
+          is the last step — a failed verify ships nothing)
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.
+  ${measure:...} / ${gain:...} tokens are data-dependent plan edges: their
+    values come from BS.1770-4 measurements made during execution (computed,
+    never typed -- ADR-5).

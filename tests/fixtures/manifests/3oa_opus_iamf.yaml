@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 3OA opus raw
+sources:
+  amb: { path: wavs/amb.wav, kind: ambisonics }
+elements:
+  scene: { from: amb }
+presentations:
+  - id: main
+    annotations: { en-us: "3OA Scene" }
+    elements: [ { ref: scene } ]
+targets:
+  - { format: iamf, out: dist/3oa.iamf }

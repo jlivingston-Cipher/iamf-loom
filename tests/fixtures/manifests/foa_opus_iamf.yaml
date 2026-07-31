@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 FOA opus raw
+sources:
+  amb: { path: wavs/amb.wav, kind: ambisonics }
+elements:
+  scene: { from: amb }
+presentations:
+  - id: main
+    annotations: { en-us: "FOA Scene" }
+    elements: [ { ref: scene } ]
+targets:
+  - { format: iamf, out: dist/foa.iamf }

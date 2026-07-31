@@ -1,0 +1,44 @@
+LOOM EXPLAIN -- WP1 3OA opus raw
+==============================
+manifest sha256: 9598be824406225269b86e94ce563278f29b607572437b74fe2bb3161669ba15
+1 source(s) | 1 target(s) | 4 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  amb: wavs/amb.wav
+    declared: kind ambisonics, order acn, norm sn3d
+    probed:   16 ch, 48000 Hz, 24-bit, 4800 frames, sha256 c1a8e13a8cf2, ambisonics order 3
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: dist/3oa.iamf
+  format: iamf   profile: simple   backend: iamftools
+  why this route:
+    raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured loudness,
+    profile control)
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/amb.wav; to $WORK/wav/amb.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-3oa-cfg  [write_config, internal]
+        to $WORK/cfg/t00-3oa.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     3. t00-3oa-enc  [encode, encoder_main]
+        writes $WORK/enc/t00-3oa/t00-3oa.iamf
+        why: raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured
+          loudness, profile control)
+     4. t00-3oa-out  [copy, internal]
+        from $WORK/enc/t00-3oa/t00-3oa.iamf; to $OUTDIR/dist/3oa.iamf
+        why: deliver the encoder output to the target path
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.

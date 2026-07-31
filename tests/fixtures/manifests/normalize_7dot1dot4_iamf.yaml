@@ -1,0 +1,14 @@
+loom: 0
+title: R3 normalize 7.1.4 raw
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "7.1.4 Mix" }
+    elements: [ { ref: bed } ]
+policy:
+  loudness: { mode: measure, normalize: -20 }
+targets:
+  - { format: iamf, out: dist/norm714.iamf }

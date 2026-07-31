@@ -1,0 +1,445 @@
+{
+  "loom_version": "0.2.0",
+  "title": "d43 evidence",
+  "manifest_sha256": "b6134f01c6be22d391f22c59602b2b24d99e346e82923d6d251ea3bd4f44c00d",
+  "toolchain": "/home/claude/iamf-wp1",
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.002
+    },
+    {
+      "id": "t00-main-cfg-pre",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t00-main-enc-pre",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.308
+    },
+    {
+      "id": "t00-main-render-anchor-pre",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.084
+    },
+    {
+      "id": "t00-main-measure-anchor-pre",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -12.4,
+        "dp": -4.440648,
+        "tp": -4.4
+      },
+      "ok": true,
+      "seconds": 0.037
+    },
+    {
+      "id": "t00-main-ride",
+      "kind": "gain_ride",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "ridden_peak_dbfs": -21.661791,
+      "seconds": 0.039
+    },
+    {
+      "id": "t00-main-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t00-main-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.297
+    },
+    {
+      "id": "t00-main-verify",
+      "kind": "verify_loudness",
+      "tool": "internal",
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -15.97265625,
+      "delta_lu": 0.027,
+      "method": "bitstream read-back (sentinel parser)",
+      "ok": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "t00-main-out",
+      "kind": "copy",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.001
+    },
+    {
+      "id": "t01-main_yt-cfg-pre",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t01-main_yt-enc-pre",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.283
+    },
+    {
+      "id": "t01-main_yt-render-anchor-pre",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.077
+    },
+    {
+      "id": "t01-main_yt-measure-anchor-pre",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -12.4,
+        "dp": -4.440648,
+        "tp": -4.4
+      },
+      "ok": true,
+      "seconds": 0.036
+    },
+    {
+      "id": "t01-main_yt-ride",
+      "kind": "gain_ride",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "ridden_peak_dbfs": -21.661791,
+      "seconds": 0.035
+    },
+    {
+      "id": "t01-main_yt-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t01-main_yt-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.283
+    },
+    {
+      "id": "t01-main_yt-verify",
+      "kind": "verify_loudness",
+      "tool": "internal",
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -15.97265625,
+      "delta_lu": 0.027,
+      "method": "bitstream read-back (sentinel parser)",
+      "ok": true,
+      "seconds": 0.007
+    },
+    {
+      "id": "t01-main_yt-mux",
+      "kind": "remux",
+      "tool": "mp4box",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.011
+    },
+    {
+      "id": "t02-main_av-enc-pre",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.165
+    },
+    {
+      "id": "t02-main_av-render-anchor-pre",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.098
+    },
+    {
+      "id": "t02-main_av-measure-anchor-pre",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -12.4,
+        "dp": -4.365346,
+        "tp": -4.4
+      },
+      "ok": true,
+      "seconds": 0.044
+    },
+    {
+      "id": "t02-main_av-ride",
+      "kind": "gain_ride",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "ridden_peak_dbfs": -21.661791,
+      "seconds": 0.035
+    },
+    {
+      "id": "t02-main_av-p1",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.171
+    },
+    {
+      "id": "t02-main_av-render-stereo",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.085
+    },
+    {
+      "id": "t02-main_av-measure-stereo",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -16.0,
+        "dp": -7.975551,
+        "tp": -8.0
+      },
+      "ok": true,
+      "seconds": 0.033
+    },
+    {
+      "id": "t02-main_av-render-7_1_4",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.103
+    },
+    {
+      "id": "t02-main_av-measure-7_1_4",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -13.7,
+        "dp": -21.331856,
+        "tp": -21.3
+      },
+      "ok": true,
+      "seconds": 0.151
+    },
+    {
+      "id": "t02-main_av-p2",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.162
+    },
+    {
+      "id": "t02-main_av-verify",
+      "kind": "verify_loudness",
+      "tool": "internal",
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -16.0,
+      "delta_lu": 0.0,
+      "method": "re-measured (injected) values",
+      "ok": true,
+      "seconds": 0.0
+    }
+  ],
+  "measured_loudness": {
+    "t00-main-measure-anchor-pre": {
+      "il": -12.4,
+      "dp": -4.440648,
+      "tp": -4.4
+    },
+    "t01-main_yt-measure-anchor-pre": {
+      "il": -12.4,
+      "dp": -4.440648,
+      "tp": -4.4
+    },
+    "t02-main_av-measure-anchor-pre": {
+      "il": -12.4,
+      "dp": -4.365346,
+      "tp": -4.4
+    },
+    "t02-main_av-measure-stereo": {
+      "il": -16.0,
+      "dp": -7.975551,
+      "tp": -8.0
+    },
+    "t02-main_av-measure-7_1_4": {
+      "il": -13.7,
+      "dp": -21.331856,
+      "tp": -21.3
+    }
+  },
+  "normalize": {
+    "t00-main-measure-anchor-pre": {
+      "target_lufs": -16.0,
+      "pre_ride_il": -12.4,
+      "applied_gain_db": -3.6,
+      "ridden_peak_dbfs": -21.661791
+    },
+    "t00-main-verify": {
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -15.97265625,
+      "delta_lu": 0.027,
+      "tolerance_lu": 0.3,
+      "method": "bitstream read-back (sentinel parser)",
+      "within_tolerance": true
+    },
+    "t01-main_yt-measure-anchor-pre": {
+      "target_lufs": -16.0,
+      "pre_ride_il": -12.4,
+      "applied_gain_db": -3.6,
+      "ridden_peak_dbfs": -21.661791
+    },
+    "t01-main_yt-verify": {
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -15.97265625,
+      "delta_lu": 0.027,
+      "tolerance_lu": 0.3,
+      "method": "bitstream read-back (sentinel parser)",
+      "within_tolerance": true
+    },
+    "t02-main_av-measure-anchor-pre": {
+      "target_lufs": -16.0,
+      "pre_ride_il": -12.4,
+      "applied_gain_db": -3.6,
+      "ridden_peak_dbfs": -21.661791
+    },
+    "t02-main_av-verify": {
+      "anchor": "stereo",
+      "target_lufs": -16.0,
+      "post_ride_il": -16.0,
+      "delta_lu": 0.0,
+      "tolerance_lu": 0.3,
+      "method": "re-measured (injected) values",
+      "within_tolerance": true
+    }
+  },
+  "gate": {
+    "dist/main.iamf": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-311",
+          "severity": "WARN",
+          "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+        },
+        {
+          "id": "S-303",
+          "severity": "INFO",
+          "message": "no layout advertises true peak (info_type true-peak bit unset)"
+        }
+      ]
+    },
+    "dist/main_yt.mp4": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-311",
+          "severity": "WARN",
+          "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+        },
+        {
+          "id": "S-403",
+          "severity": "WARN",
+          "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+        },
+        {
+          "id": "S-303",
+          "severity": "INFO",
+          "message": "no layout advertises true peak (info_type true-peak bit unset)"
+        }
+      ]
+    },
+    "dist/main_av.mp4": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-403",
+          "severity": "WARN",
+          "message": "canonical codecs string is 'iamf.000.000.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.000.000.opus' vs YouTube's expected mixed case)"
+        }
+      ]
+    }
+  },
+  "outputs": {
+    "dist/main.iamf": {
+      "sha256": "07dc68765d9acf6a7ffb5444ee2d118b5d45cc44d5121493519425cadb5bb4ca",
+      "bytes": 296255,
+      "backend": "iamftools",
+      "profile": "simple"
+    },
+    "dist/main_yt.mp4": {
+      "sha256": "721905e3a57db1ee9635174776bd77e99143661c9ac91c074d3b3e552319e9f5",
+      "bytes": 1337987,
+      "backend": "iamftools",
+      "profile": "base"
+    },
+    "dist/main_av.mp4": {
+      "sha256": "dd64ca46050215491e5960aaf127bd1a0ed1be519b2a3796e3c71c7279a81c5b",
+      "bytes": 1422908,
+      "backend": "ffmpeg_oneshot",
+      "profile": "simple"
+    }
+  },
+  "ok": true
+}

@@ -1,0 +1,12 @@
+loom: 0
+title: R9 stereo binaural preview opus
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: stereo }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "Stereo Mix" }
+    elements: [ { ref: bed, headphones: binaural } ]
+targets:
+  - { format: preview, out: review/stereo.binaural.opus }

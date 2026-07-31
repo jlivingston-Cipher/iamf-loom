@@ -1,0 +1,15 @@
+loom: 0
+title: R9 normalized binaural preview
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "7.1.4 Mix" }
+    elements: [ { ref: bed, headphones: binaural } ]
+policy:
+  loudness: { mode: measure, normalize: -16 }
+targets:
+  - { format: iamf, out: dist/norm714.iamf }
+  - { format: preview, out: review/norm714.binaural.wav }

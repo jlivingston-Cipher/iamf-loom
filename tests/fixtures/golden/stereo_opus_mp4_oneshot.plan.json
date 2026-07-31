@@ -1,0 +1,169 @@
+{
+  "loom_plan": 1,
+  "title": "WP1 stereo opus AV oneshot",
+  "manifest_sha256": "f379466298a4107b4e1608a0060519a518b855d0fa5c942189ca396ce959dde0",
+  "tokens": {
+    "toolchain": "$TOOLCHAIN",
+    "work": "$WORK",
+    "outdir": "$OUTDIR",
+    "srcdir": "$SRCDIR"
+  },
+  "sources": {
+    "main": {
+      "path": "wavs/main.wav",
+      "sha256": "5f295631b3480dbbf0a1c2b52f7c1127a9598d1422f90cd7096fa5af1f0a117f",
+      "kind": "bed",
+      "layout": "stereo",
+      "order": "bs2051",
+      "norm": null,
+      "channels": 2,
+      "sample_rate": 48000,
+      "bits": 24,
+      "frames": 4800,
+      "ambisonics_order": null
+    }
+  },
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "src": "$SRCDIR/wavs/main.wav",
+      "dst": "$WORK/wav/main.wav",
+      "writes": [
+        "$WORK/wav/main.wav"
+      ],
+      "rationale": "single input_wav_directory for encoder_main; staged copy pins the bytes the plan's source hash refers to"
+    },
+    {
+      "id": "t00-stereo_av-p1",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "argv": [
+        "$TOOLCHAIN/bin/ffmpeg-install/bin/ffmpeg",
+        "-y",
+        "-hide_banner",
+        "-i",
+        "$WORK/wav/main.wav",
+        "-filter_complex",
+        "[0:a]pan=stereo|c0=c0|c1=c1[frontLR]",
+        "-map",
+        "[frontLR]",
+        "-c:a:0",
+        "libopus",
+        "-b:a:0",
+        "128000",
+        "-stream_group",
+        "type=iamf_audio_element:id=1:st=0:audio_element_type=channel,layer=ch_layout=stereo",
+        "-stream_group",
+        "type=iamf_mix_presentation:id=2:stg=0:annotations=en-us=Stereo Mix,submix=parameter_id=100:parameter_rate=48000:default_mix_gain=0.0|element=stg=0:parameter_id=101:parameter_rate=48000:default_mix_gain=0.0:annotations=en-us=bed|layout=sound_system=stereo",
+        "-streamid",
+        "0:0",
+        "$WORK/os/t00-stereo_av.pass1.iamf"
+      ],
+      "reads": [
+        "$WORK/wav/main.wav"
+      ],
+      "writes": [
+        "$WORK/os/t00-stereo_av.pass1.iamf"
+      ],
+      "rationale": "pass 1 of the two-pass loudness flow; never a deliverable (FFmpeg alone writes 0.0 loudness, F7)"
+    },
+    {
+      "id": "t00-stereo_av-render-stereo",
+      "kind": "render",
+      "tool": "decoder_main",
+      "argv": [
+        "$TOOLCHAIN/src/build-iamf/decoder_main",
+        "--input_filename=$WORK/os/t00-stereo_av.pass1.iamf",
+        "--output_filename=$WORK/os/t00-stereo_av.stereo.wav",
+        "--output_layout=2.0"
+      ],
+      "reads": [
+        "$WORK/os/t00-stereo_av.pass1.iamf"
+      ],
+      "writes": [
+        "$WORK/os/t00-stereo_av.stereo.wav"
+      ],
+      "rationale": "reference-render the stereo loudness layout for BS.1770 measurement"
+    },
+    {
+      "id": "t00-stereo_av-measure-stereo",
+      "kind": "measure_bs1770",
+      "tool": "sentinel-dsp",
+      "argv": [
+        "$TOOLCHAIN/bin/sentinel-dsp",
+        "$WORK/os/t00-stereo_av.stereo.wav",
+        "--layout",
+        "2.0"
+      ],
+      "reads": [
+        "$WORK/os/t00-stereo_av.stereo.wav"
+      ],
+      "rationale": "BS.1770-4 via the sentinel-dsp kernel (F34: the declared values must be conformant; ebur128's BACK_MASK is F29-non-conformant on 7.1.x); computed, never typed"
+    },
+    {
+      "id": "t00-stereo_av-p2",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "argv": [
+        "$TOOLCHAIN/bin/ffmpeg-install/bin/ffmpeg",
+        "-y",
+        "-hide_banner",
+        "-i",
+        "$WORK/wav/main.wav",
+        "-i",
+        "$SRCDIR/v.mp4",
+        "-filter_complex",
+        "[0:a]pan=stereo|c0=c0|c1=c1[frontLR]",
+        "-map",
+        "[frontLR]",
+        "-map",
+        "1:v",
+        "-c:v",
+        "copy",
+        "-c:a:0",
+        "libopus",
+        "-b:a:0",
+        "128000",
+        "-stream_group",
+        "type=iamf_audio_element:id=1:st=0:audio_element_type=channel,layer=ch_layout=stereo",
+        "-stream_group",
+        "type=iamf_mix_presentation:id=2:stg=0:annotations=en-us=Stereo Mix,submix=parameter_id=100:parameter_rate=48000:default_mix_gain=0.0|element=stg=0:parameter_id=101:parameter_rate=48000:default_mix_gain=0.0:annotations=en-us=bed|layout=sound_system=stereo:integrated_loudness=${measure:t00-stereo_av-measure-stereo:il}:digital_peak=${measure:t00-stereo_av-measure-stereo:dp}:true_peak=${measure:t00-stereo_av-measure-stereo:tp}",
+        "-streamid",
+        "0:0",
+        "-streamid",
+        "1:1",
+        "-movflags",
+        "+faststart",
+        "$OUTDIR/dist/stereo_av.mp4"
+      ],
+      "reads": [
+        "$WORK/wav/main.wav",
+        "$SRCDIR/v.mp4"
+      ],
+      "writes": [
+        "$OUTDIR/dist/stereo_av.mp4"
+      ],
+      "rationale": "Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7 closed); F4 order and F6 streamids compiler-enforced"
+    }
+  ],
+  "targets": [
+    {
+      "out": "dist/stereo_av.mp4",
+      "format": "mp4",
+      "backend": "ffmpeg_oneshot",
+      "muxer": "ffmpeg",
+      "preset": null,
+      "profile": "simple",
+      "steps": [
+        "s00-stage-src",
+        "t00-stereo_av-p1",
+        "t00-stereo_av-render-stereo",
+        "t00-stereo_av-measure-stereo",
+        "t00-stereo_av-p2"
+      ],
+      "rationale": "Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7 closed); F4 order and F6 streamids compiler-enforced"
+    }
+  ]
+}

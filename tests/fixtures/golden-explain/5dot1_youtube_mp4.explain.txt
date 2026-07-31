@@ -1,0 +1,69 @@
+LOOM EXPLAIN -- WP1 5.1 youtube candidate
+=======================================
+manifest sha256: 115afd6491005c626f7a2d2bd0bab3dd2dc19133eb5fa615ab3c1af190a4b4d9
+1 source(s) | 1 target(s) | 5 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 5.1, order bs2051
+    probed:   6 ch, 48000 Hz, 24-bit, 4800 frames, sha256 8d4b7cb45d30
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: dist/youtube_candidate.mp4
+  format: mp4   preset: youtube   profile: base   backend: iamftools + mp4box mux
+  why this route:
+    iamf-tools encode + MP4Box mux (ADR-2: FFmpeg muxes only when it is also
+    the encoder — its IAMF copy path discards start-trim irrecoverably (F31),
+    while MP4Box keeps the essence intact and repairable (F32); preset:
+    youtube needs base-profile signaling, which the FFmpeg CLI does not expose
+    (G11) — routed via iamf-tools + MP4Box). YouTube shape needs base profile
+    — iamf-tools is the only CLI route (G11).
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-youtube_candidate-cfg  [write_config, internal]
+        to $WORK/cfg/t00-youtube_candidate.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     3. t00-youtube_candidate-enc  [encode, encoder_main]
+        writes $WORK/enc/t00-youtube_candidate/t00-youtube_candidate.iamf
+        why: iamf-tools encode + MP4Box mux (ADR-2: FFmpeg muxes only when it
+          is also the encoder — its IAMF copy path discards start-trim
+          irrecoverably (F31), while MP4Box keeps the essence intact and
+          repairable (F32); preset: youtube needs base-profile signaling,
+          which the FFmpeg CLI does not expose (G11) — routed via iamf-tools +
+          MP4Box). YouTube shape needs base profile — iamf-tools is the only
+          CLI route (G11).
+     4. t00-youtube_candidate-mux  [remux, mp4box]
+        writes $OUTDIR/dist/youtube_candidate.mp4
+        why: ADR-2: MP4Box for every remux (repairability asymmetry — FFmpeg
+          copy discards start-trim, F31; MP4Box output stays repairable, F32);
+          the F9 DTS warning on stderr is expected — it is the visible surface
+          of F32, repaired by the next step and tripwired downstream by the
+          Sentinel gate (S-408)
+     5. t00-youtube_candidate-repair  [repair_stts, internal]
+        writes $OUTDIR/dist/youtube_candidate.mp4
+        why: item 13 (doc 84): MP4Box's stts excludes the start-trim from the
+          first IA sample's duration (F32, gpac/gpac#3826, filed with patch)
+          and contradicts its own — correct — elst; a 14496-12-conformant
+          consumer then discards the first temporal unit whole (-648 samples
+          on the doc-60 matrix). Rewrite the deltas to the IAMF §6.2.2
+          duration model in place (byte-size-preserving; essence untouched;
+          facts read from the file's own IA stream) and re-cohere
+          mdhd/tkhd/elst/mvhd durations. Already-conformant tables no-op, so
+          this step self-retires when gpac's fix is merged AND released (the
+          removal trigger)
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.

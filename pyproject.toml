@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iamf-loom"
+version = "0.8.0"
+description = "Manifest-driven IAMF packager: declarative manifest -> dual-backend encode -> measured loudness -> Sentinel-validated output"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }          # A′ (doc 48): full open-source posture
+authors = [{ name = "The iamf-loom authors" }]
+keywords = ["iamf", "immersive-audio", "packager", "encoding", "batch", "loudness"]
+dependencies = [
+    "PyYAML>=6",
+    "iamf-sentinel>=0.3",
+]
+
+[project.scripts]
+loom = "loom.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["loom*"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools.package-data]
+loom = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+# Lint with ruff defaults (E4/E7/E9/F). The fixture/dev tier deliberately uses a
+# compact one-line idiom; the per-file ignores below codify that two-tier style.
+target-version = "py311"
+
+
+[tool.coverage.run]
+# regen_goldens.py is a dev tool living beside the goldens it rewrites (it
+# single-sources CASES from test_compile_golden); it is not itself a test.
+omit = ["tests/regen_goldens.py"]

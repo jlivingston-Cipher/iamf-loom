@@ -1,0 +1,946 @@
+{
+  "loom_version": "0.3.0",
+  "spec_hash": "77d37e920048d4936d06ac2f50082c80448d5fd4d9f76a979d7380cb6a63618d",
+  "manifest_sha256": "e564edaf9e0141095093033207f36c07cd437d3ce33209caec92c06cb1ebf4fd",
+  "batch_file": "/tmp/d44demo/batch.yaml",
+  "tool_identities": {
+    "decoder_main": "d7ebf1d0ab4f9442510407b0a3d73d82fc39de567fed3a73d28dc6ce16fa0c81",
+    "encoder_main": "8bc5497d17c1a47143eafb088e11337c2f9cd4d4fe081141b34529e17725cb42",
+    "ffmpeg": "e5878517e6058fb05df91cd1e87af174ca7169103ee5bd0c342cc60fc076378c",
+    "mp4box": "bcca0e46a5abbc83e9cd2a0a42d008c760ad13b0633d5c801b6d56274a8a6fab"
+  },
+  "workers": 2,
+  "cache_policy": "readwrite",
+  "resume": true,
+  "jobs": [
+    {
+      "job_id": "s01",
+      "vars": {
+        "title": "s01",
+        "layout": "stereo"
+      },
+      "status": "ok",
+      "seconds": 1.188,
+      "worker": "ThreadPoolExecutor-0_0",
+      "out_dir": "out/s01",
+      "outputs": {
+        "dist/s01.iamf": {
+          "sha256": "171de84611d0abf1847e770c2e688904797d7dc0351f468e8c0f8e8148f85358",
+          "bytes": 49374,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/s01.mp4": {
+          "sha256": "a6e2951b1e6a26c7d97d7de2c07ed029e7b4d064be24f544a76af834a9b28c05",
+          "bytes": 1090936,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-s01-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        },
+        "t01-s01-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        }
+      },
+      "normalize": {
+        "t00-s01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t00-s01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-s01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t01-s01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/s01.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/s01.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/s01.iamf": "miss",
+        "dist/s01.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "s02",
+      "vars": {
+        "title": "s02",
+        "layout": "stereo"
+      },
+      "status": "ok",
+      "seconds": 1.246,
+      "worker": "ThreadPoolExecutor-0_1",
+      "out_dir": "out/s02",
+      "outputs": {
+        "dist/s02.iamf": {
+          "sha256": "fd7f3395d114eedd06b7e4d93951c2f77d80515a7b034260b5ea6b38b6b41acb",
+          "bytes": 49374,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/s02.mp4": {
+          "sha256": "ec6d9f034cf433bc50ca26049c35739a308ac464dbf461e6025cc2f5ab4dca5f",
+          "bytes": 1090936,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-s02-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        },
+        "t01-s02-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        }
+      },
+      "normalize": {
+        "t00-s02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t00-s02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-s02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t01-s02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/s02.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/s02.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/s02.iamf": "miss",
+        "dist/s02.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "s03",
+      "vars": {
+        "title": "s03",
+        "layout": "stereo"
+      },
+      "status": "ok",
+      "seconds": 0.907,
+      "worker": "ThreadPoolExecutor-0_0",
+      "out_dir": "out/s03",
+      "outputs": {
+        "dist/s03.iamf": {
+          "sha256": "490069d975a36d789b5a709c9ccc6463767ac24c3566f20d5177544332f00bd1",
+          "bytes": 49374,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/s03.mp4": {
+          "sha256": "631241dda1822a01a34ec027af9f671933842005febc08238fe67c856dd927f7",
+          "bytes": 1090936,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-s03-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        },
+        "t01-s03-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        }
+      },
+      "normalize": {
+        "t00-s03-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t00-s03-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-s03-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t01-s03-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/s03.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/s03.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/s03.iamf": "miss",
+        "dist/s03.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "s04",
+      "vars": {
+        "title": "s04",
+        "layout": "stereo"
+      },
+      "status": "ok",
+      "seconds": 0.932,
+      "worker": "ThreadPoolExecutor-0_1",
+      "out_dir": "out/s04",
+      "outputs": {
+        "dist/s04.iamf": {
+          "sha256": "5520427a747ff09066ce7c13b51e37494c36df1d3a18f5de04917ae4efeeb523",
+          "bytes": 49374,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/s04.mp4": {
+          "sha256": "d59f8ba31543b0b3c1bb3cf563cfcd2cdb6cf9f9923781dad3c1d976a68f810e",
+          "bytes": 1090936,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-s04-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        },
+        "t01-s04-measure-anchor-pre": {
+          "il": -18.7,
+          "dp": -17.847634,
+          "tp": -17.8
+        }
+      },
+      "normalize": {
+        "t00-s04-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t00-s04-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-s04-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -18.7,
+          "applied_gain_db": 2.7,
+          "ridden_peak_dbfs": -15.361794
+        },
+        "t01-s04-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -16.02734375,
+          "delta_lu": -0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/s04.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/s04.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -15.04 dBFS differs from declared -15.36 dBFS by +0.32 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/s04.iamf": "miss",
+        "dist/s04.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "f01",
+      "vars": {
+        "title": "f01",
+        "layout": "5.1"
+      },
+      "status": "ok",
+      "seconds": 2.615,
+      "worker": "ThreadPoolExecutor-0_0",
+      "out_dir": "out/f01",
+      "outputs": {
+        "dist/f01.iamf": {
+          "sha256": "fceffb10a272450f74518b76a1b22de8d64b543d346c631cc4d7312cb59eac9b",
+          "bytes": 148493,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/f01.mp4": {
+          "sha256": "9302b60a944ad41b4aabb7731dc4cded0a8b51b80e2fdee325e580edae1823f1",
+          "bytes": 1190056,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-f01-measure-anchor-pre": {
+          "il": -15.7,
+          "dp": -10.384521,
+          "tp": -10.4
+        },
+        "t01-f01-measure-anchor-pre": {
+          "il": -15.7,
+          "dp": -10.384521,
+          "tp": -10.4
+        }
+      },
+      "normalize": {
+        "t00-f01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -15.7,
+          "applied_gain_db": -0.3,
+          "ridden_peak_dbfs": -18.361798
+        },
+        "t00-f01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.953125,
+          "delta_lu": 0.047,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-f01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -15.7,
+          "applied_gain_db": -0.3,
+          "ridden_peak_dbfs": -18.361798
+        },
+        "t01-f01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.953125,
+          "delta_lu": 0.047,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/f01.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -17.99 dBFS differs from declared -18.36 dBFS by +0.37 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/f01.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -17.99 dBFS differs from declared -18.36 dBFS by +0.37 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/f01.iamf": "miss",
+        "dist/f01.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "f02",
+      "vars": {
+        "title": "f02",
+        "layout": "5.1"
+      },
+      "status": "ok",
+      "seconds": 2.679,
+      "worker": "ThreadPoolExecutor-0_1",
+      "out_dir": "out/f02",
+      "outputs": {
+        "dist/f02.iamf": {
+          "sha256": "2ede1b799d0bd629d28a1cc5790bc52e5b563ad0d35b73ef89a83b5562ff88d5",
+          "bytes": 148493,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/f02.mp4": {
+          "sha256": "92e8304d7c74f7d52ce7756fc49ca9c10b93d2f9152394c6cffe7afd73784608",
+          "bytes": 1190056,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-f02-measure-anchor-pre": {
+          "il": -15.7,
+          "dp": -10.384521,
+          "tp": -10.4
+        },
+        "t01-f02-measure-anchor-pre": {
+          "il": -15.7,
+          "dp": -10.384521,
+          "tp": -10.4
+        }
+      },
+      "normalize": {
+        "t00-f02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -15.7,
+          "applied_gain_db": -0.3,
+          "ridden_peak_dbfs": -18.361798
+        },
+        "t00-f02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.953125,
+          "delta_lu": 0.047,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-f02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -15.7,
+          "applied_gain_db": -0.3,
+          "ridden_peak_dbfs": -18.361798
+        },
+        "t01-f02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.953125,
+          "delta_lu": 0.047,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/f02.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -17.99 dBFS differs from declared -18.36 dBFS by +0.37 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/f02.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -17.99 dBFS differs from declared -18.36 dBFS by +0.37 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/f02.iamf": "miss",
+        "dist/f02.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "h01",
+      "vars": {
+        "title": "h01",
+        "layout": "7.1.4"
+      },
+      "status": "ok",
+      "seconds": 4.542,
+      "worker": "ThreadPoolExecutor-0_0",
+      "out_dir": "out/h01",
+      "outputs": {
+        "dist/h01.iamf": {
+          "sha256": "7cd59606cdfb1184c7ae15d44684f23b1e2bc3a2992ad186659d9d264f86fc63",
+          "bytes": 296246,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/h01.mp4": {
+          "sha256": "ac221407b13443c57bba8876d77d7e0c8eca9107dd05c0681739acbef678f639",
+          "bytes": 1337809,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-h01-measure-anchor-pre": {
+          "il": -12.4,
+          "dp": -4.440648,
+          "tp": -4.4
+        },
+        "t01-h01-measure-anchor-pre": {
+          "il": -12.4,
+          "dp": -4.440648,
+          "tp": -4.4
+        }
+      },
+      "normalize": {
+        "t00-h01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -12.4,
+          "applied_gain_db": -3.6,
+          "ridden_peak_dbfs": -21.661791
+        },
+        "t00-h01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.97265625,
+          "delta_lu": 0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-h01-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -12.4,
+          "applied_gain_db": -3.6,
+          "ridden_peak_dbfs": -21.661791
+        },
+        "t01-h01-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.97265625,
+          "delta_lu": 0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/h01.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/h01.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/h01.iamf": "miss",
+        "dist/h01.mp4": "miss"
+      },
+      "failures": []
+    },
+    {
+      "job_id": "h02",
+      "vars": {
+        "title": "h02",
+        "layout": "7.1.4"
+      },
+      "status": "ok",
+      "seconds": 4.543,
+      "worker": "ThreadPoolExecutor-0_1",
+      "out_dir": "out/h02",
+      "outputs": {
+        "dist/h02.iamf": {
+          "sha256": "33072496b39265269a577f347f5e25ab1075445fe1a400929a2f6da2e1081734",
+          "bytes": 296246,
+          "backend": "iamftools",
+          "profile": "simple"
+        },
+        "dist/h02.mp4": {
+          "sha256": "9236f192db35c996a11751f9c7b2b002f3dd026e13cd16763db12490c15b940c",
+          "bytes": 1337809,
+          "backend": "iamftools",
+          "profile": "base"
+        }
+      },
+      "measured_loudness": {
+        "t00-h02-measure-anchor-pre": {
+          "il": -12.4,
+          "dp": -4.440648,
+          "tp": -4.4
+        },
+        "t01-h02-measure-anchor-pre": {
+          "il": -12.4,
+          "dp": -4.440648,
+          "tp": -4.4
+        }
+      },
+      "normalize": {
+        "t00-h02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -12.4,
+          "applied_gain_db": -3.6,
+          "ridden_peak_dbfs": -21.661791
+        },
+        "t00-h02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.97265625,
+          "delta_lu": 0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        },
+        "t01-h02-measure-anchor-pre": {
+          "target_lufs": -16.0,
+          "pre_ride_il": -12.4,
+          "applied_gain_db": -3.6,
+          "ridden_peak_dbfs": -21.661791
+        },
+        "t01-h02-verify": {
+          "anchor": "stereo",
+          "target_lufs": -16.0,
+          "post_ride_il": -15.97265625,
+          "delta_lu": 0.027,
+          "tolerance_lu": 0.3,
+          "method": "bitstream read-back (sentinel parser)",
+          "within_tolerance": true
+        }
+      },
+      "gate": {
+        "dist/h02.iamf": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        },
+        "dist/h02.mp4": {
+          "tier": "l1l2+l3",
+          "passed": true,
+          "fail_ids": [],
+          "findings": [
+            {
+              "id": "S-311",
+              "severity": "WARN",
+              "message": "measured digital peak -21.30 dBFS differs from declared -21.66 dBFS by +0.36 dB (oracle decoder_main)"
+            },
+            {
+              "id": "S-403",
+              "severity": "WARN",
+              "message": "canonical codecs string is 'iamf.001.001.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.001.001.opus' vs YouTube's expected mixed case)"
+            },
+            {
+              "id": "S-303",
+              "severity": "INFO",
+              "message": "no layout advertises true peak (info_type true-peak bit unset)"
+            }
+          ]
+        }
+      },
+      "cache": {
+        "dist/h02.iamf": "miss",
+        "dist/h02.mp4": "miss"
+      },
+      "failures": []
+    }
+  ],
+  "totals": {
+    "jobs": 8,
+    "ok": 8,
+    "failed": 0,
+    "skipped_resume": 0,
+    "cache_hits": 0,
+    "cache_misses": 16,
+    "seconds": 9.918
+  }
+}

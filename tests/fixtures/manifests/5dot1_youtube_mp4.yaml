@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 5.1 youtube candidate
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "5.1" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "Theatrical Mix" }
+    elements: [ { ref: bed } ]
+targets:
+  - { format: mp4, out: dist/youtube_candidate.mp4, video: v.mp4, preset: youtube }

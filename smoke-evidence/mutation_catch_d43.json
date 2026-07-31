@@ -1,0 +1,54 @@
+{
+  "doc": 43,
+  "what": "R5 mutation-catch accept test (PRD R5): F4-tempting substream order injected into the FFmpeg backend; encode rc 0, gate must fail",
+  "control": {
+    "run_ok": true,
+    "encode_rcs": [
+      0,
+      0
+    ],
+    "gate": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-403",
+          "severity": "WARN",
+          "message": "canonical codecs string is 'iamf.000.000.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.000.000.opus' vs YouTube's expected mixed case)"
+        }
+      ]
+    },
+    "failures": []
+  },
+  "mutated": {
+    "run_ok": false,
+    "encode_rcs": [
+      0,
+      0
+    ],
+    "gate": {
+      "tier": "l1l2+l3",
+      "passed": false,
+      "fail_ids": [
+        "S-321"
+      ],
+      "findings": [
+        {
+          "id": "S-321",
+          "severity": "WARN",
+          "message": "2 channel pair(s) carry effectively the same signal: Lss\u2248Rss (r=1.0000), Lrs\u2248Rrs (r=1.0000) \u2014 F4 duplication signature",
+          "escalated": true
+        },
+        {
+          "id": "S-403",
+          "severity": "WARN",
+          "message": "canonical codecs string is 'iamf.000.000.Opus'; verify downstream manifests do not lowercase the 4CC (F12: GPAC emits 'iamf.000.000.opus' vs YouTube's expected mixed case)"
+        }
+      ]
+    },
+    "failures": [
+      "gate[dist/mut.mp4]: FAIL findings: ['S-321'] \u2014 a Loom run that emits a nonconformant file is a Loom bug (PRD goal 4)"
+    ]
+  }
+}

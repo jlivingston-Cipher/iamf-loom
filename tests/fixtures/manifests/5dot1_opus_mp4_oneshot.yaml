@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 5.1 opus AV oneshot
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "5.1" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "5.1 Mix" }
+    elements: [ { ref: bed } ]
+targets:
+  - { format: mp4, out: dist/5dot1_av.mp4, video: v.mp4 }

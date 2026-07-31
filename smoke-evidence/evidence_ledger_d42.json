@@ -1,0 +1,157 @@
+{
+  "loom_version": "0.1.0",
+  "title": "Doc42 Evidence",
+  "manifest_sha256": "f98d4f25183cd5a751f2411be6f5ad6c72120b9ddf8bc3cc72e449ab9b3736c3",
+  "toolchain": "/home/claude/iamf-wp1",
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.001
+    },
+    {
+      "id": "t00-main-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t00-main-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.162
+    },
+    {
+      "id": "t00-main-out",
+      "kind": "copy",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t01-main_av-p1",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.099
+    },
+    {
+      "id": "t01-main_av-render-stereo",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.065
+    },
+    {
+      "id": "t01-main_av-measure-stereo",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -15.7,
+        "dp": -10.297511,
+        "tp": -10.3
+      },
+      "ok": true,
+      "seconds": 0.043
+    },
+    {
+      "id": "t01-main_av-render-5_1",
+      "kind": "render",
+      "tool": "decoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.068
+    },
+    {
+      "id": "t01-main_av-measure-5_1",
+      "kind": "measure_bs1770",
+      "tool": "ffmpeg",
+      "rc": [
+        0,
+        0
+      ],
+      "measured": {
+        "il": -14.0,
+        "dp": -17.652094,
+        "tp": -17.6
+      },
+      "ok": true,
+      "seconds": 0.094
+    },
+    {
+      "id": "t01-main_av-p2",
+      "kind": "encode",
+      "tool": "ffmpeg",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.146
+    },
+    {
+      "id": "t02-youtube-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t02-youtube-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.239
+    },
+    {
+      "id": "t02-youtube-mux",
+      "kind": "remux",
+      "tool": "mp4box",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.018
+    }
+  ],
+  "measured_loudness": {
+    "t01-main_av-measure-stereo": {
+      "il": -15.7,
+      "dp": -10.297511,
+      "tp": -10.3
+    },
+    "t01-main_av-measure-5_1": {
+      "il": -14.0,
+      "dp": -17.652094,
+      "tp": -17.6
+    }
+  },
+  "outputs": {
+    "dist/main.iamf": {
+      "sha256": "db4a2ed2c5f4ce29ccef203e99e6f45e8bd1cda27993fe310f3ac8749f01d133",
+      "bytes": 148502,
+      "backend": "iamftools",
+      "profile": "simple"
+    },
+    "dist/main_av.mp4": {
+      "sha256": "bd4c0f7763df1263e2593c186e88ce6848672b4dc2a8c59d2319ee29b92c0023",
+      "bytes": 3535823,
+      "backend": "ffmpeg_oneshot",
+      "profile": "simple"
+    },
+    "dist/youtube.mp4": {
+      "sha256": "ceffc32ead2f11dd5528488827f44a05b7552c17423eb4d4351e2a87831e789a",
+      "bytes": 3500894,
+      "backend": "iamftools",
+      "profile": "base"
+    }
+  },
+  "ok": true
+}

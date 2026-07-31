@@ -1,0 +1,14 @@
+loom: 0
+title: R4 archive flac 5.1 mezzanine
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "5.1" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "5.1 Mix" }
+    elements: [ { ref: bed } ]
+policy:
+  codec: { name: flac }
+targets:
+  - { format: iamf, out: dist/mezz51.iamf, preset: archive }

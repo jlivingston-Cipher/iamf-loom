@@ -1,0 +1,22 @@
+loom: 0
+title: Multilang Normalized
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+  vo_en: { path: wavs/vo_en.wav, kind: bed, layout: stereo }
+  vo_de: { path: wavs/vo_de.wav, kind: bed, layout: stereo }
+elements:
+  bed: { from: main }
+  vo_en: { from: vo_en }
+  vo_de: { from: vo_de }
+presentations:
+  - id: "mix-{lang}"
+    languages:
+      - { lang: en-us, vo: vo_en, label: "English" }
+      - { lang: de-de, vo: vo_de, label: "Deutsch" }
+    elements:
+      - { ref: bed }
+      - { ref: "{vo}" }
+policy:
+  loudness: { mode: measure, normalize: -16 }
+targets:
+  - { format: iamf, out: dist/multilang_norm.iamf }

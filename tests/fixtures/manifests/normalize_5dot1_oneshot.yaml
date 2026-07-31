@@ -1,0 +1,14 @@
+loom: 0
+title: R3 normalize 5.1 AV oneshot
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "5.1" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "5.1 Mix" }
+    elements: [ { ref: bed } ]
+policy:
+  loudness: { mode: measure, normalize: -14 }
+targets:
+  - { format: mp4, out: dist/norm51.mp4, video: v.mp4 }

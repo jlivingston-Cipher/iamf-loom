@@ -1,0 +1,62 @@
+{
+  "loom_version": "0.2.0",
+  "title": "d43 mezzanine",
+  "manifest_sha256": "09fc44862d270a9941c7681896014bddfa6557a321155854d8c146232050859f",
+  "toolchain": "/home/claude/iamf-wp1",
+  "steps": [
+    {
+      "id": "s00-stage-src",
+      "kind": "stage_input",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.002
+    },
+    {
+      "id": "t00-main_mezz-cfg",
+      "kind": "write_config",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.0
+    },
+    {
+      "id": "t00-main_mezz-enc",
+      "kind": "encode",
+      "tool": "encoder_main",
+      "rc": 0,
+      "ok": true,
+      "seconds": 0.265
+    },
+    {
+      "id": "t00-main_mezz-out",
+      "kind": "copy",
+      "tool": "internal",
+      "ok": true,
+      "seconds": 0.001
+    }
+  ],
+  "measured_loudness": {},
+  "normalize": {},
+  "gate": {
+    "mezz/main_mezz.iamf": {
+      "tier": "l1l2+l3",
+      "passed": true,
+      "fail_ids": [],
+      "findings": [
+        {
+          "id": "S-303",
+          "severity": "INFO",
+          "message": "no layout advertises true peak (info_type true-peak bit unset)"
+        }
+      ]
+    }
+  },
+  "outputs": {
+    "mezz/main_mezz.iamf": {
+      "sha256": "87bfc32ea4cff7689b1d611266f0b5a9fbff65ba7f8867dc962a6a32d7199cf8",
+      "bytes": 1544029,
+      "backend": "iamftools",
+      "profile": "simple"
+    }
+  },
+  "ok": true
+}

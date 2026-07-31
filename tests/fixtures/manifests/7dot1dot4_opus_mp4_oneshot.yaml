@@ -1,0 +1,12 @@
+loom: 0
+title: WP1 7.1.4 opus AV oneshot
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "7.1.4" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "7.1.4 Mix" }
+    elements: [ { ref: bed } ]
+targets:
+  - { format: mp4, out: dist/7dot1dot4_av.mp4, video: v.mp4 }

@@ -1,0 +1,69 @@
+LOOM EXPLAIN -- WP1 7.1.4 opus AV oneshot
+=======================================
+manifest sha256: 164fed589719e8e29f057d556b5a38e902bb95ea2c44849ffd230641fd449c57
+1 source(s) | 1 target(s) | 7 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 7.1.4, order bs2051
+    probed:   12 ch, 48000 Hz, 24-bit, 4800 frames, sha256 2d8b61cc3976
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: dist/7dot1dot4_av.mp4
+  format: mp4   profile: simple   backend: ffmpeg_oneshot + ffmpeg mux
+  why this route:
+    Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in
+    one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7
+    closed); F4 order and F6 streamids compiler-enforced
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-7dot1dot4_av-p1  [encode, ffmpeg]
+        writes $WORK/os/t00-7dot1dot4_av.pass1.iamf
+        why: pass 1 of the two-pass loudness flow; never a deliverable (FFmpeg
+          alone writes 0.0 loudness, F7)
+     3. t00-7dot1dot4_av-render-stereo  [render, decoder_main]
+        writes $WORK/os/t00-7dot1dot4_av.stereo.wav
+        why: reference-render the stereo loudness layout for BS.1770
+          measurement
+     4. t00-7dot1dot4_av-measure-stereo  [measure_bs1770, sentinel-dsp]
+        why: BS.1770-4 via the sentinel-dsp kernel (F34: the declared values
+          must be conformant; ebur128's BACK_MASK is F29-non-conformant on
+          7.1.x); computed, never typed
+     5. t00-7dot1dot4_av-render-7_1_4  [render, decoder_main]
+        writes $WORK/os/t00-7dot1dot4_av.7_1_4.wav
+        why: reference-render the 7.1.4 loudness layout for BS.1770
+          measurement
+     6. t00-7dot1dot4_av-measure-7_1_4  [measure_bs1770, sentinel-dsp]
+        why: BS.1770-4 via the sentinel-dsp kernel (F34: the declared values
+          must be conformant; ebur128's BACK_MASK is F29-non-conformant on
+          7.1.x); computed, never typed
+     7. t00-7dot1dot4_av-p2  [encode, ffmpeg]
+        writes $OUTDIR/dist/7dot1dot4_av.mp4
+        resolves at execution: ${measure:t00-7dot1dot4_av-measure-stereo:il},
+          ${measure:t00-7dot1dot4_av-measure-stereo:dp},
+          ${measure:t00-7dot1dot4_av-measure-stereo:tp},
+          ${measure:t00-7dot1dot4_av-measure-7_1_4:il},
+          ${measure:t00-7dot1dot4_av-measure-7_1_4:dp},
+          ${measure:t00-7dot1dot4_av-measure-7_1_4:tp}
+        why: Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use
+          (encode+mux in one invocation, ADR-2); two-pass BS.1770
+          measure->inject applied (F7 closed); F4 order and F6 streamids
+          compiler-enforced
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.
+  ${measure:...} / ${gain:...} tokens are data-dependent plan edges: their
+    values come from BS.1770-4 measurements made during execution (computed,
+    never typed -- ADR-5).

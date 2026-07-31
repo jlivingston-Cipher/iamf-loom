@@ -1,0 +1,44 @@
+LOOM EXPLAIN -- R4 archive flac 5.1 mezzanine
+===========================================
+manifest sha256: 3f3f7cdd5fbd013960d1a555696586e8225e454935efe43c28c56709fcbf7252
+1 source(s) | 1 target(s) | 4 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 5.1, order bs2051
+    probed:   6 ch, 48000 Hz, 24-bit, 4800 frames, sha256 8d4b7cb45d30
+
+POLICY  (as resolved)
+  codec: flac
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: dist/mezz51.iamf
+  format: iamf   preset: archive   profile: simple   backend: iamftools
+  why this route:
+    raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured loudness,
+    profile control)
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-mezz51-cfg  [write_config, internal]
+        to $WORK/cfg/t00-mezz51.textproto
+        why: original textproto emitter (D-L6); loudness fields absent —
+          encoder_main measures natively (G2b)
+     3. t00-mezz51-enc  [encode, encoder_main]
+        writes $WORK/enc/t00-mezz51/t00-mezz51.iamf
+        why: raw .iamf: iamf-tools primary (ADR-1 — native BS.1770 measured
+          loudness, profile control)
+     4. t00-mezz51-out  [copy, internal]
+        from $WORK/enc/t00-mezz51/t00-mezz51.iamf; to $OUTDIR/dist/mezz51.iamf
+        why: deliver the encoder output to the target path
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.

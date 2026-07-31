@@ -1,0 +1,18 @@
+{
+  "kill_after_s": 0.61,
+  "journal_lines_at_kill": 2,
+  "resume_rc": 0,
+  "statuses": [
+    "skipped-resume",
+    "skipped-resume",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+  ],
+  "skipped_resume": 2,
+  "reran": 4,
+  "control_rc": 0,
+  "outputs": 6,
+  "byte_identical_vs_uninterrupted_control": true
+}

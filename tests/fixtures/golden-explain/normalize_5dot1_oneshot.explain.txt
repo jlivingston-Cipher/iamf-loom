@@ -1,0 +1,94 @@
+LOOM EXPLAIN -- R3 normalize 5.1 AV oneshot
+=========================================
+manifest sha256: 28b4d87d4ae62a7abc8c32b3e14cf1ddaa8b9f0b6b11c3fdbe3c59c22e5c1406
+1 source(s) | 1 target(s) | 12 plan step(s)
+
+SOURCES  (file facts are probed, never typed -- ADR-5)
+  main: wavs/main.wav
+    declared: kind bed, layout 5.1, order bs2051
+    probed:   6 ch, 48000 Hz, 24-bit, 4800 frames, sha256 8d4b7cb45d30
+
+POLICY  (as resolved)
+  codec: opus  (coupled 128000 bps, uncoupled 64000 bps)
+  loudness: measure -- embedded loudness values are measured at
+    execution on rendered layouts (BS.1770), never typed
+  normalize: -14 LUFS -- gain-ride the source, then re-measure the ridden
+    audio; accept within +/-0.3 LU; clip guard: ridden digital peak must stay
+    below -0.05 dBFS (Loom is not a limiter)
+  profile: auto -- derived per target from element/channel arithmetic
+  validate: fail_on_error -- every output passes through the Sentinel gate at
+    run time (L3 rendered QC when oracles are present); findings S-320/S-321
+    escalate to run-failing on Loom-packaged outputs
+
+TARGET 1/1: dist/norm51.mp4
+  format: mp4   profile: simple   backend: ffmpeg_oneshot + ffmpeg mux
+  why this route:
+    Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use (encode+mux in
+    one invocation, ADR-2); two-pass BS.1770 measure->inject applied (F7
+    closed); F4 order and F6 streamids compiler-enforced
+  steps (execution order):
+     1. s00-stage-src  [stage_input, internal]
+        from $SRCDIR/wavs/main.wav; to $WORK/wav/main.wav
+        why: single input_wav_directory for encoder_main; staged copy pins the
+          bytes the plan's source hash refers to
+     2. t00-norm51-enc-pre  [encode, ffmpeg]
+        writes $WORK/norm/t00-norm51/pre.iamf
+        why: R3 pass-A encode (FFmpeg one-shot audio path); never a
+          deliverable
+     3. t00-norm51-render-anchor-pre  [render, decoder_main]
+        writes $WORK/norm/t00-norm51/anchor-pre.wav
+        why: R3: reference-render the anchor layout (stereo — the first
+          effective loudness layout) pre-ride
+     4. t00-norm51-measure-anchor-pre  [measure_bs1770, sentinel-dsp]
+        why: R3: pre-ride BS.1770-4 on the anchor render (sentinel-dsp kernel
+          — conformant engine, F34); the ride gain derives from THIS
+          measurement only
+     5. t00-norm51-ride  [gain_ride, ffmpeg]
+        writes $WORK/wavn/t00-norm51/main.wav
+        resolves at execution: ${gain:t00-norm51-measure-anchor-pre:-14.00}
+        why: R3 gain-ride to -14 LUFS (gain = target - measured, resolved at
+          execution; clip guard: ridden digital peak must stay below -0.05
+          dBFS — Loom is not a limiter)
+     6. t00-norm51-p1  [encode, ffmpeg]
+        writes $WORK/os/t00-norm51.pass1.iamf
+        why: pass 1 of the two-pass loudness flow; never a deliverable (FFmpeg
+          alone writes 0.0 loudness, F7) — reads the ridden WAV (R3), so these
+          measurements are the post-ride truth
+     7. t00-norm51-render-stereo  [render, decoder_main]
+        writes $WORK/os/t00-norm51.stereo.wav
+        why: reference-render the stereo loudness layout for BS.1770
+          measurement
+     8. t00-norm51-measure-stereo  [measure_bs1770, sentinel-dsp]
+        why: BS.1770-4 via the sentinel-dsp kernel (F34: the declared values
+          must be conformant; ebur128's BACK_MASK is F29-non-conformant on
+          7.1.x); computed, never typed
+     9. t00-norm51-render-5_1  [render, decoder_main]
+        writes $WORK/os/t00-norm51.5_1.wav
+        why: reference-render the 5.1 loudness layout for BS.1770 measurement
+    10. t00-norm51-measure-5_1  [measure_bs1770, sentinel-dsp]
+        why: BS.1770-4 via the sentinel-dsp kernel (F34: the declared values
+          must be conformant; ebur128's BACK_MASK is F29-non-conformant on
+          7.1.x); computed, never typed
+    11. t00-norm51-p2  [encode, ffmpeg]
+        writes $OUTDIR/dist/norm51.mp4
+        resolves at execution: ${measure:t00-norm51-measure-stereo:il},
+          ${measure:t00-norm51-measure-stereo:dp},
+          ${measure:t00-norm51-measure-stereo:tp},
+          ${measure:t00-norm51-measure-5_1:il},
+          ${measure:t00-norm51-measure-5_1:dp},
+          ${measure:t00-norm51-measure-5_1:tp}
+        why: Opus A/V one-shot from WAV: the ADR-1 designated FFmpeg use
+          (encode+mux in one invocation, ADR-2); two-pass BS.1770
+          measure->inject applied (F7 closed); F4 order and F6 streamids
+          compiler-enforced
+    12. t00-norm51-verify  [verify_loudness, internal]
+        why: R3 accept: the re-measured (and injected) anchor-layout loudness
+          of the ridden program must land within ±0.3 LU of the normalize
+          target
+
+NOTES
+  $TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR are execution-time roots; plans are
+    environment-portable and contain no absolute paths.
+  ${measure:...} / ${gain:...} tokens are data-dependent plan edges: their
+    values come from BS.1770-4 measurements made during execution (computed,
+    never typed -- ADR-5).

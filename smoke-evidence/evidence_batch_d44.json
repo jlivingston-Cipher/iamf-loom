@@ -1,0 +1,67 @@
+{
+  "catalog": {
+    "jobs": 8,
+    "layout_mix": {
+      "stereo": 4,
+      "5.1": 2,
+      "7.1.4": 2
+    },
+    "targets_per_job": [
+      "raw .iamf",
+      "youtube mp4 (remux, -for-test)"
+    ],
+    "normalize_lufs": -16,
+    "essence_s": 3.0
+  },
+  "build_run": {
+    "rc": 0,
+    "wall_s": 9.9,
+    "totals": {
+      "jobs": 8,
+      "ok": 8,
+      "failed": 0,
+      "skipped_resume": 0,
+      "cache_hits": 0,
+      "cache_misses": 16,
+      "seconds": 9.918
+    },
+    "workers_used": [
+      "ThreadPoolExecutor-0_0",
+      "ThreadPoolExecutor-0_1"
+    ],
+    "normalize_deltas_lu": [
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.027,
+      0.047,
+      0.047,
+      0.047,
+      0.047
+    ]
+  },
+  "cache_hit_run": {
+    "rc": 0,
+    "wall_s": 0.6,
+    "totals": {
+      "jobs": 8,
+      "ok": 8,
+      "failed": 0,
+      "skipped_resume": 0,
+      "cache_hits": 16,
+      "cache_misses": 0,
+      "seconds": 0.566
+    },
+    "byte_identical": true,
+    "gate_all_cached": true,
+    "speedup": 17.5
+  }
+}

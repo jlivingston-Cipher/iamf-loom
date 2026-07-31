@@ -1,0 +1,87 @@
+{
+  "correct": {
+    "decoder_rc": 0,
+    "channels": [
+      {
+        "ch": 0,
+        "dominant_hz": 440.0,
+        "expected_hz": 440.0,
+        "ok": true
+      },
+      {
+        "ch": 1,
+        "dominant_hz": 500.0,
+        "expected_hz": 500.0,
+        "ok": true
+      },
+      {
+        "ch": 2,
+        "dominant_hz": 560.0,
+        "expected_hz": 560.0,
+        "ok": true
+      },
+      {
+        "ch": 3,
+        "dominant_hz": 620.0,
+        "expected_hz": 620.0,
+        "ok": true
+      },
+      {
+        "ch": 4,
+        "dominant_hz": 680.0,
+        "expected_hz": 680.0,
+        "ok": true
+      },
+      {
+        "ch": 5,
+        "dominant_hz": 740.0,
+        "expected_hz": 740.0,
+        "ok": true
+      }
+    ],
+    "identity_pass": true
+  },
+  "f4_wrong": {
+    "decoder_rc": 0,
+    "channels": [
+      {
+        "ch": 0,
+        "dominant_hz": 440.0,
+        "expected_hz": 440.0,
+        "ok": true
+      },
+      {
+        "ch": 1,
+        "dominant_hz": 500.0,
+        "expected_hz": 500.0,
+        "ok": true
+      },
+      {
+        "ch": 2,
+        "dominant_hz": 620.0,
+        "expected_hz": 560.0,
+        "ok": false
+      },
+      {
+        "ch": 3,
+        "dominant_hz": 680.0,
+        "expected_hz": 620.0,
+        "ok": false
+      },
+      {
+        "ch": 4,
+        "dominant_hz": 560.0,
+        "expected_hz": 680.0,
+        "ok": false
+      },
+      {
+        "ch": 5,
+        "dominant_hz": 560.0,
+        "expected_hz": 740.0,
+        "ok": false
+      }
+    ],
+    "identity_pass": false
+  },
+  "verdict": "detector proven: correct order passes, F4 order is detected as scrambled; both files encoded rc0 with no warnings (the silent-corruption class)"
+}

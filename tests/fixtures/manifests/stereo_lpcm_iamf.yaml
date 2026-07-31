@@ -1,0 +1,14 @@
+loom: 0
+title: WP1 stereo lpcm raw
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: stereo }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "Stereo PCM" }
+    elements: [ { ref: bed } ]
+policy:
+  codec: { name: lpcm }
+targets:
+  - { format: iamf, out: dist/stereo_pcm.iamf }

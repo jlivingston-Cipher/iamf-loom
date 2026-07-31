@@ -1,0 +1,110 @@
+{
+  "doc": 42,
+  "cycle": "loom-phase1",
+  "toolchain": {
+    "build_minutes": 36.2,
+    "band": "23-45 (doc-15)",
+    "addendum_iamfdec": "OK",
+    "decode_round_trip": {
+      "sample": "sentinel-pro/samples-l3/7dot1dot4_correct.iamf",
+      "decoder_main": {
+        "rc": 0,
+        "shape": "12ch x 480000",
+        "il_lufs": -8.68794734012
+      },
+      "iamfdec": {
+        "rc": 0,
+        "flags": "-i0 -s9 -disable_limiter -o3",
+        "shape": "12ch x 480000",
+        "il_lufs": -8.6879472615
+      },
+      "backend": "kernel",
+      "expected": "-8.688 (docs 39/40/41)",
+      "verdict": "MATCH"
+    },
+    "mp4box": "GPAC 26.03-DEV static-mp4box source build at bin/MP4Box"
+  },
+  "suites": {
+    "loom": "60 passed / 0 failed (incl. 10 toolchain-gated parity tests; A/V oneshot green on first executed attempt)",
+    "oss_standalone_isolated": "47 passed / 1 skipped (doc-36/41 exact; skip = youtube pack, pro off-path)",
+    "pro_kernel_configured": "43 passed / 0 skipped",
+    "pro_reference_forced_kernel_on_path": "43 passed / 0 skipped",
+    "note_34_9_baseline": "the 9 doc-41 skips were toolchain-gated; toolchain present this cycle -> they run, all pass",
+    "dsp_backend": "15/15 kernel-configured AND 15/15 reference-forced",
+    "combined_91_gate": "91 passed / 0 failed, BOTH backend ways (doc-15 full gate)"
+  },
+  "evidence_run": {
+    "manifest": "catalog.yaml (5.1 bed; 3 targets: raw iamf / AV oneshot mp4 / youtube preset mp4)",
+    "plan": "13 steps, 3 targets; loom compile -o plan.json",
+    "results": {
+      "dist/main.iamf": {
+        "backend": "iamftools",
+        "profile": "simple",
+        "sentinel": "0 ERROR / 0 WARN / 1 INFO"
+      },
+      "dist/main_av.mp4": {
+        "backend": "ffmpeg_oneshot",
+        "profile": "simple",
+        "sentinel": "0 ERROR / 2 WARN (S-403=F12 case quirk; S-406 audio 3s vs donor video 10s \u2014 fixture artifact, phase-2 compile-probe note)"
+      },
+      "dist/youtube.mp4": {
+        "backend": "iamftools+mp4box",
+        "profile": "base",
+        "sentinel": "0 ERROR / 2 WARN (same two)"
+      }
+    },
+    "loudness_cross_validation": {
+      "ffmpeg_path_injected_declared": {
+        "stereo": [
+          -15.7,
+          -10.3
+        ],
+        "5.1": [
+          -14.0,
+          -17.65
+        ]
+      },
+      "ledger_measured": {
+        "stereo": [
+          -15.7,
+          -10.3
+        ],
+        "5.1": [
+          -14.0,
+          -17.65
+        ]
+      },
+      "iamftools_native_declared": {
+        "stereo": [
+          -15.65,
+          -10.44
+        ],
+        "5.1": [
+          -13.98,
+          -18.06
+        ]
+      },
+      "delta_il_lu": {
+        "stereo": 0.05,
+        "5.1": 0.02
+      },
+      "verdict": "injection byte-verified in bitstream; two independent measurement stacks agree <=0.05 LU (WP1 G5-class cross-validation reproduced)"
+    },
+    "youtube_shape": {
+      "brands": [
+        "isom",
+        "iso6",
+        "iamf",
+        "mp42"
+      ],
+      "fast_start": true,
+      "rfc6381": "iamf.001.001.opus (F12 lowercase recorded, not fixed)",
+      "profile_signaled": "base via iamf-tools (G11); ffmpeg oneshot files show iamf.000.000 (Simple) as expected"
+    }
+  },
+  "f4_negative_control": "see f4_negative_control_d42.json: correct order all-channels PASS; F4 order encodes rc0 silently and detector flags ch2-ch5 scrambled",
+  "environment": {
+    "registries": "403 at egress proxy again (8 for 8) - probed before cycle selection",
+    "video_donor": "H.264 track stream-copied from wp1-samples/youtube_candidate_5dot1.mp4 (lean LGPL-class ffmpeg has no x264; ADR-4 anticipated user-supplied video)"
+  }
+}
