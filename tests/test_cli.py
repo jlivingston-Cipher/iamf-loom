@@ -25,7 +25,7 @@ MANIFEST = (
 def manifest(tmp_path):
     write_wav(tmp_path / "wavs/main.wav", 2)
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(MANIFEST)
+    mf.write_text(MANIFEST, encoding="utf-8")
     return mf
 
 
@@ -43,12 +43,12 @@ def test_cli_compile_to_file_reports_shape(manifest, tmp_path, capsys):
     msg = capsys.readouterr().out
     assert f"plan written: {out_path}" in msg
     assert "steps" in msg and "targets" in msg
-    assert out_path.read_text().startswith("{")
+    assert out_path.read_text(encoding="utf-8").startswith("{")
 
 
 def test_cli_compile_error_lists_diagnostics(tmp_path, capsys):
     mf = tmp_path / "manifest.yaml"
-    mf.write_text("loom: 0\n")                     # missing everything
+    mf.write_text("loom: 0\n", encoding="utf-8")                     # missing everything
     assert main(["compile", str(mf)]) == 2
     err = capsys.readouterr().err
     assert err.startswith("error: ")
@@ -72,7 +72,7 @@ def test_cli_run_missing_toolchain_is_actionable(manifest, tmp_path, capsys):
 
 def test_cli_run_compile_error_short_circuits(tmp_path, capsys):
     mf = tmp_path / "manifest.yaml"
-    mf.write_text("loom: 0\n")
+    mf.write_text("loom: 0\n", encoding="utf-8")
     assert main(["run", str(mf)]) == 2
     cap = capsys.readouterr()
     assert cap.err.startswith("error: ")
@@ -83,7 +83,7 @@ def test_cli_run_compile_error_short_circuits(tmp_path, capsys):
 
 def test_cli_batch_bad_spec_is_m420(tmp_path, capsys):
     bf = tmp_path / "batch.yaml"
-    bf.write_text("jobs: []\n")                    # missing loom_batch header
+    bf.write_text("jobs: []\n", encoding="utf-8")                    # missing loom_batch header
     assert main(["batch", str(bf)]) == 2
     assert "M-420" in capsys.readouterr().err
 
@@ -93,12 +93,12 @@ def test_cli_batch_missing_toolchain_writes_ledger(tmp_path, capsys):
         "loom: 0\ntitle: \"{title}\"\n"
         "sources:\n  main: { path: \"wavs/{title}.wav\", kind: bed, layout: stereo }\n"
         "elements:\n  bed: { from: main }\n"
-        "targets:\n  - { format: iamf, out: \"dist/{title}.iamf\" }\n")
+        "targets:\n  - { format: iamf, out: \"dist/{title}.iamf\" }\n", encoding="utf-8")
     write_wav(tmp_path / "wavs/ep01.wav", 2)
     bf = tmp_path / "batch.yaml"
     bf.write_text("loom_batch: 0\nmanifest: tpl.yaml\n"
                   "defaults: { out_dir: \"out/{title}\" }\n"
-                  "jobs:\n  - { vars: { title: ep01 } }\n")
+                  "jobs:\n  - { vars: { title: ep01 } }\n", encoding="utf-8")
     rc = main(["batch", str(bf), "--no-cache",
                "--state-dir", str(tmp_path / "state"),
                "--toolchain", "/nonexistent-toolchain"])

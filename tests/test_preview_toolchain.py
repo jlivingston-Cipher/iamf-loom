@@ -33,7 +33,7 @@ def run_manifest(tmp_path, text, wavs, frames=FRAMES):
     for rel, ch in wavs.items():
         write_wav(tmp_path / rel, ch, frames=frames)
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(text)
+    mf.write_text(text, encoding="utf-8")
     m = load_manifest(mf)
     plan = compile_manifest(m)
     ex = Executor(plan, m.manifest_dir, tmp_path / "out", tmp_path / "work",
@@ -153,13 +153,13 @@ def test_preview_batch_cache_replay(tmp_path):
         "    elements: [ { ref: bed, headphones: binaural } ]\n"
         "targets:\n"
         "  - out: \"review/{title}.binaural.wav\"\n"
-        "    format: preview\n")
+        "    format: preview\n", encoding="utf-8")
     (tmp_path / "batch.yaml").write_text(
         "loom_batch: 0\nmanifest: tpl.yaml\n"
         "defaults: { out_dir: \"dist/{title}\" }\n"
         "jobs:\n"
         "  - { id: a, vars: { title: ta } }\n"
-        "  - { id: b, vars: { title: tb } }\n")
+        "  - { id: b, vars: { title: tb } }\n", encoding="utf-8")
     import json as _json
 
     from loom.batch import load_batch, run_batch
@@ -178,7 +178,7 @@ def test_preview_batch_cache_replay(tmp_path):
     rc2, lp = run_batch(spec, workers=2, state_dir=state,
                         toolchain=str(toolchain_root()))
     assert rc2 == 0
-    ledger = _json.loads(lp.read_text())
+    ledger = _json.loads(lp.read_text(encoding="utf-8"))
     assert ledger["totals"]["cache_hits"] == 2
     assert ledger["totals"]["cache_misses"] == 0
     for job in ledger["jobs"]:

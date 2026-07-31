@@ -65,7 +65,7 @@ def run_manifest(tmp_path: Path, text: str, wavs: dict[str, int]):
     for rel, ch in wavs.items():
         write_wav(tmp_path / rel, ch, frames=FRAMES)
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(text)
+    mf.write_text(text, encoding="utf-8")
     m = load_manifest(mf)
     plan = compile_manifest(m)
     ex = Executor(plan, m.manifest_dir, tmp_path / "out", tmp_path / "work",

@@ -19,7 +19,7 @@ EXPLAIN_DIR = GOLDEN_DIR.parent / "golden-explain"
 
 
 def _explain_case(project, name, wavs, extra) -> str:
-    text = (MANIFEST_DIR / f"{name}.yaml").read_text()
+    text = (MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8")
     mf = project(text, wavs, extra_files=extra, name=f"{name}.yaml")
     m = load_manifest(mf)
     plan = compile_manifest(m)
@@ -35,7 +35,7 @@ def test_explain_golden(project, name, wavs, extra):
     got = _explain_case(project, name, wavs, extra)
     gp = EXPLAIN_DIR / f"{name}.explain.txt"
     assert gp.is_file(), f"explain golden missing: {gp.name}"
-    assert got == gp.read_text(), (
+    assert got == gp.read_text(encoding="utf-8"), (
         f"explain for {name} deviates from the golden snapshot")
 
 
@@ -44,7 +44,7 @@ def test_output_contracts():
     target block carries backend + non-empty routing rationale (E-X3)."""
     from loom import __version__
     for name, _w, _e in CASES:
-        text = (EXPLAIN_DIR / f"{name}.explain.txt").read_text()
+        text = (EXPLAIN_DIR / f"{name}.explain.txt").read_text(encoding="utf-8")
         assert __version__ not in text, f"{name}: version string leaked"
         assert not re.search(r"(?i)loom \d+\.\d+", text), (
             f"{name}: version-shaped string leaked")
@@ -63,12 +63,12 @@ def test_output_contracts():
 def test_content_assertions():
     """E-X3 spot checks on the golden set: routing reasons, blocker lists,
     the R3 chain, tokens + legend."""
-    yt = (EXPLAIN_DIR / "5dot1_youtube_mp4.explain.txt").read_text()
+    yt = (EXPLAIN_DIR / "5dot1_youtube_mp4.explain.txt").read_text(encoding="utf-8")
     assert "G11" in yt and "F31" in yt         # why iamf-tools+MP4Box, not oneshot
     assert "F5" not in yt                      # doc-56-refuted framing stays out
     assert "backend: iamftools + mp4box mux" in yt
 
-    nz = (EXPLAIN_DIR / "normalize_5dot1_oneshot.explain.txt").read_text()
+    nz = (EXPLAIN_DIR / "normalize_5dot1_oneshot.explain.txt").read_text(encoding="utf-8")
     assert "normalize: -14 LUFS" in nz and "+/-0.3 LU" in nz
     assert "${gain:" in nz and "${measure:" in nz
     assert "gain_ride" in nz and "verify_loudness" in nz
@@ -78,12 +78,12 @@ def test_content_assertions():
     yt_steps = yt.split("steps (execution order):", 1)[1]
     assert "[remux, mp4box]" in yt_steps        # ADR-2 route visible as a step
 
-    ar = (EXPLAIN_DIR / "archive_flac_5dot1_iamf.explain.txt").read_text()
+    ar = (EXPLAIN_DIR / "archive_flac_5dot1_iamf.explain.txt").read_text(encoding="utf-8")
     assert "codec: flac" in ar
     assert "raw .iamf: iamf-tools primary" in ar
     assert "preset: archive" in ar
 
-    simple = (EXPLAIN_DIR / "stereo_opus_iamf.explain.txt").read_text()
+    simple = (EXPLAIN_DIR / "stereo_opus_iamf.explain.txt").read_text(encoding="utf-8")
     assert "data-dependent plan edges" not in simple   # no tokens -> no legend
     assert "$TOOLCHAIN / $WORK / $OUTDIR / $SRCDIR" in simple  # env note always
 
@@ -157,7 +157,7 @@ def test_var_equivalence(project, tmp_path):
 def test_cli_explain(project, tmp_path, capsys):
     """D-X2: stdout by default; -o writes the file; --var binds."""
     from loom.cli import main
-    text = (MANIFEST_DIR / "stereo_opus_iamf.yaml").read_text()
+    text = (MANIFEST_DIR / "stereo_opus_iamf.yaml").read_text(encoding="utf-8")
     mf = project(text, {"wavs/main.wav": 2}, name="m.yaml")
     rc = main(["explain", str(mf)])
     assert rc == 0
@@ -166,7 +166,7 @@ def test_cli_explain(project, tmp_path, capsys):
     dst = tmp_path / "out.txt"
     rc = main(["explain", str(mf), "-o", str(dst)])
     assert rc == 0
-    assert dst.read_text() == out
+    assert dst.read_text(encoding="utf-8") == out
 
 
 def test_cli_explain_errors(project, capsys):

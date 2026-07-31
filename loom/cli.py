@@ -37,7 +37,7 @@ def _cmd_compile(args: argparse.Namespace) -> int:
         return 2
     text = plan.dumps()
     if args.output:
-        Path(args.output).write_text(text)
+        Path(args.output).write_text(text, encoding="utf-8", newline="\n")
         print(f"plan written: {args.output} "
               f"({len(plan.steps)} steps, {len(plan.targets)} targets)")
     else:
@@ -56,7 +56,7 @@ def _cmd_explain(args: argparse.Namespace) -> int:
         return 2
     text = render_explain(m, plan)
     if args.output:
-        Path(args.output).write_text(text)
+        Path(args.output).write_text(text, encoding="utf-8", newline="\n")
         print(f"explain written: {args.output}")
     else:
         sys.stdout.write(text)

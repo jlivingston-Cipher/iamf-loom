@@ -35,16 +35,16 @@ def _artifacts(name: str, wavs: dict, extra: dict, root: Path):
         fp.parent.mkdir(parents=True, exist_ok=True)
         fp.write_bytes(content)
     mf = proj / f"{name}.yaml"
-    mf.write_text((MANIFEST_DIR / f"{name}.yaml").read_text())
+    mf.write_text((MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8"))
     m = load_manifest(mf)
     plan = compile_manifest(m)
     return plan.dumps(), render_explain(m, plan)
 
 
 def _refresh(path: Path, text: str) -> bool:
-    old = path.read_text() if path.is_file() else None
+    old = path.read_text(encoding="utf-8") if path.is_file() else None
     if old != text:
-        path.write_text(text)
+        path.write_text(text, encoding="utf-8")
         print(f"rewrote {path.name}")
         return True
     print(f"unchanged {path.name}")

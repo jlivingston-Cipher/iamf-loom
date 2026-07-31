@@ -27,11 +27,11 @@ TPL = (
 
 
 def _project(tmp_path, batch_text, titles=("ep01", "ep02")):
-    (tmp_path / "tpl.yaml").write_text(TPL)
+    (tmp_path / "tpl.yaml").write_text(TPL, encoding="utf-8")
     for t in titles:
         write_wav(tmp_path / "wavs" / f"{t}.wav", 2)
     bf = tmp_path / "batch.yaml"
-    bf.write_text(batch_text)
+    bf.write_text(batch_text, encoding="utf-8")
     return bf
 
 
@@ -113,7 +113,7 @@ def test_journal_spec_mismatch_is_hard_error(tmp_path):
     state = tmp_path / "state"
     state.mkdir()
     (state / "journal.jsonl").write_text(json.dumps(
-        {"spec": "f" * 64, "job_id": "x", "ok": True, "outputs": {}}) + "\n")
+        {"spec": "f" * 64, "job_id": "x", "ok": True, "outputs": {}}) + "\n", encoding="utf-8")
     with pytest.raises(BatchError) as ei:
         run_batch(spec, state_dir=state)
     assert spec.spec_hash[:12] in str(ei.value)
@@ -130,7 +130,7 @@ def test_ledger_contract_and_failed_job_isolation(tmp_path):
     rc, ledger_path = run_batch(spec, state_dir=tmp_path / "state",
                                 no_cache=True)
     assert rc == 2
-    led = json.loads(ledger_path.read_text())
+    led = json.loads(ledger_path.read_text(encoding="utf-8"))
     for k in REQUIRED_LEDGER_KEYS["batch"]:
         assert k in led, f"batch ledger missing {k}"
     for job in led["jobs"]:
@@ -157,7 +157,7 @@ def test_ledger_echoes_vars_and_tool_identities(tmp_path):
     spec = load_batch(bf)
     _rc, ledger_path = run_batch(spec, state_dir=tmp_path / "state",
                                  no_cache=True)
-    led = json.loads(ledger_path.read_text())
+    led = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert led["jobs"][0]["vars"] == {"title": "ep01"}
     assert set(led["tool_identities"]) == {
         "decoder_main", "encoder_main", "ffmpeg", "mp4box", "sentinel-dsp"}

@@ -61,7 +61,7 @@ def _write_stems(tmp_path, vo_names=("vo_en.wav", "vo_de.wav")):
 def run_manifest(tmp_path, text, stems=_write_stems):
     stems(tmp_path)
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(text)
+    mf.write_text(text, encoding="utf-8")
     m = load_manifest(mf)
     plan = compile_manifest(m)
     ex = Executor(plan, m.manifest_dir, tmp_path / "out", tmp_path / "work",

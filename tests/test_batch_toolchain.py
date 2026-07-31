@@ -73,22 +73,22 @@ def _batch_yaml(jobs: list[tuple[str, str]] | list[str],
 
 def _make_full_project(root: Path) -> Path:
     root.mkdir(parents=True, exist_ok=True)
-    (root / "tpl.yaml").write_text(TPL_FULL)
+    (root / "tpl.yaml").write_text(TPL_FULL, encoding="utf-8")
     for t, lay in JOBS:
         write_wav(root / "wavs" / f"{t}.wav", LAYOUT_CH[lay], frames=FRAMES)
     donor = video_donor(root)
     if donor is None:
         pytest.skip("no stream-copyable video donor ($LOOM_TEST_VIDEO)")
-    (root / "batch.yaml").write_text(_batch_yaml(JOBS))
+    (root / "batch.yaml").write_text(_batch_yaml(JOBS), encoding="utf-8")
     return root / "batch.yaml"
 
 
 def _make_small_project(root: Path) -> Path:
     root.mkdir(parents=True, exist_ok=True)
-    (root / "tpl.yaml").write_text(TPL_SMALL)
+    (root / "tpl.yaml").write_text(TPL_SMALL, encoding="utf-8")
     for t in SMALL_TITLES:
         write_wav(root / "wavs" / f"{t}.wav", 2, frames=FRAMES)
-    (root / "batch.yaml").write_text(_batch_yaml(SMALL_TITLES))
+    (root / "batch.yaml").write_text(_batch_yaml(SMALL_TITLES), encoding="utf-8")
     return root / "batch.yaml"
 
 
@@ -107,7 +107,7 @@ def full_batch(tmp_path_factory):
     spec = load_batch(bf)
     rc, ledger_path = run_batch(spec, workers=2,
                                 toolchain=str(toolchain_root()))
-    return root, bf, spec, rc, json.loads(ledger_path.read_text())
+    return root, bf, spec, rc, json.loads(ledger_path.read_text(encoding="utf-8"))
 
 
 # ---- E-Q4: the 8-job catalog --------------------------------------------------
@@ -171,7 +171,7 @@ def test_eq5_cache_hits_after_outputs_deleted(full_batch):
     rc, lp = run_batch(spec, workers=2, toolchain=str(toolchain_root()))
     wall = time.monotonic() - t0
     assert rc == 0
-    led = json.loads(lp.read_text())
+    led = json.loads(lp.read_text(encoding="utf-8"))
     assert led["totals"]["cache_hits"] == 16
     assert led["totals"]["cache_misses"] == 0
     for job in led["jobs"]:
@@ -181,7 +181,7 @@ def test_eq5_cache_hits_after_outputs_deleted(full_batch):
             assert gate.get("passed") and gate.get("cached") is True
     # per-job run ledgers: no steps executed at all
     for jdir in sorted((root / "out").iterdir()):
-        run_led = json.loads((jdir / "loom-run.json").read_text())
+        run_led = json.loads((jdir / "loom-run.json").read_text(encoding="utf-8"))
         assert run_led["steps"] == [], f"{jdir.name} ran steps on a full hit"
         assert all(v == "hit" for v in run_led["cache"].values())
     after = _out_files(root / "out")
@@ -205,7 +205,7 @@ def test_eq6_tampered_output_reruns(full_batch):
 
     rc, lp = run_batch(spec, workers=2, toolchain=str(toolchain_root()))
     assert rc == 0
-    led = json.loads(lp.read_text())
+    led = json.loads(lp.read_text(encoding="utf-8"))
     st = {j["job_id"]: j["status"] for j in led["jobs"]}
     assert st["s01"] == "ok", "tampered job must RE-RUN (hash-earned skip)"
     assert all(v == "skipped-resume" for k, v in st.items() if k != "s01")
@@ -238,7 +238,7 @@ def test_eq6_sigkill_resume(tmp_path):
     deadline = time.monotonic() + 120
     killed = False
     while time.monotonic() < deadline:
-        if journal.is_file() and len(journal.read_text().splitlines()) >= 2:
+        if journal.is_file() and len(journal.read_text(encoding="utf-8").splitlines()) >= 2:
             os.killpg(proc.pid, signal.SIGKILL)
             killed = True
             break
@@ -249,7 +249,7 @@ def test_eq6_sigkill_resume(tmp_path):
     if not killed:
         pytest.fail("batch finished before the kill window — enlarge the "
                     "batch; the induced-kill accept did not exercise resume")
-    n_journaled = len(journal.read_text().splitlines())
+    n_journaled = len(journal.read_text(encoding="utf-8").splitlines())
     assert 2 <= n_journaled < len(SMALL_TITLES)
 
     # relaunch, same command: journaled jobs skip, the rest complete
@@ -257,7 +257,7 @@ def test_eq6_sigkill_resume(tmp_path):
                        text=True, timeout=300)
     assert r.returncode == 0, r.stdout[-800:] + r.stderr[-400:]
     led = json.loads(
-        (journal.parent / "batch-ledger.json").read_text())
+        (journal.parent / "batch-ledger.json").read_text(encoding="utf-8"))
     statuses = [j["status"] for j in led["jobs"]]
     assert statuses.count("skipped-resume") >= 2
     assert statuses.count("ok") == len(SMALL_TITLES) - \
@@ -280,15 +280,15 @@ def test_eq6_sigkill_resume(tmp_path):
 def test_eq7_failed_job_isolation_executed(tmp_path):
     root = tmp_path / "proj"
     root.mkdir()
-    (root / "tpl.yaml").write_text(TPL_SMALL)
+    (root / "tpl.yaml").write_text(TPL_SMALL, encoding="utf-8")
     for t in ("a01", "a02"):
         write_wav(root / "wavs" / f"{t}.wav", 2, frames=FRAMES)
     (root / "batch.yaml").write_text(
-        _batch_yaml(["a01", "a02", "broken"]))   # no wavs/broken.wav
+        _batch_yaml(["a01", "a02", "broken"]), encoding="utf-8")   # no wavs/broken.wav
     rc, lp = run_batch(load_batch(root / "batch.yaml"), workers=2,
                        toolchain=str(toolchain_root()))
     assert rc == 2
-    led = json.loads(lp.read_text())
+    led = json.loads(lp.read_text(encoding="utf-8"))
     st = {j["job_id"]: j for j in led["jobs"]}
     assert st["broken"]["status"] == "failed"
     assert any("M-301" in f for f in st["broken"]["failures"])
@@ -349,16 +349,16 @@ MIXED_CH = {"p01": 2, "p02": 2, "n01": 6, "n02": 6, "a01": 12, "a02": 12}
 
 def _make_mixed_project(root: Path) -> Path:
     root.mkdir(parents=True, exist_ok=True)
-    (root / "tpl_plain.yaml").write_text(TPL_P)
-    (root / "tpl_plain_copy.yaml").write_text(TPL_P)   # byte-identical content
-    (root / "tpl_norm_av.yaml").write_text(TPL_N)
-    (root / "tpl_arch.yaml").write_text(TPL_A)
+    (root / "tpl_plain.yaml").write_text(TPL_P, encoding="utf-8")
+    (root / "tpl_plain_copy.yaml").write_text(TPL_P, encoding="utf-8")   # byte-identical content
+    (root / "tpl_norm_av.yaml").write_text(TPL_N, encoding="utf-8")
+    (root / "tpl_arch.yaml").write_text(TPL_A, encoding="utf-8")
     for t, ch in MIXED_CH.items():
         write_wav(root / "wavs" / f"{t}.wav", ch, frames=FRAMES)
     donor = video_donor(root)
     if donor is None:
         pytest.skip("no stream-copyable video donor ($LOOM_TEST_VIDEO)")
-    (root / "batch.yaml").write_text(MIXED_BATCH)
+    (root / "batch.yaml").write_text(MIXED_BATCH, encoding="utf-8")
     return root / "batch.yaml"
 
 
@@ -370,7 +370,7 @@ def mixed_batch(tmp_path_factory):
     spec = load_batch(bf)
     rc, ledger_path = run_batch(spec, workers=2,
                                 toolchain=str(toolchain_root()))
-    return root, bf, spec, rc, json.loads(ledger_path.read_text())
+    return root, bf, spec, rc, json.loads(ledger_path.read_text(encoding="utf-8"))
 
 
 @needs_toolchain
@@ -419,7 +419,7 @@ def test_ev4_worker_invariance_and_dedup(mixed_batch, tmp_path):
     spec = load_batch(copy / "batch.yaml")
     rc, lp = run_batch(spec, workers=1, toolchain=str(toolchain_root()))
     assert rc == 0
-    led = json.loads(lp.read_text())
+    led = json.loads(lp.read_text(encoding="utf-8"))
     by_id = {j["job_id"]: j for j in led["jobs"]}
     # deterministic sequential order: p01 built (miss), d01 replayed (hit)
     assert all(v == "hit" for v in by_id["d01"]["cache"].values())

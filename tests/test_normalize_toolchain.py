@@ -26,7 +26,7 @@ def run_manifest(tmp_path, text, wavs, frames=FRAMES, expect_ok=True):
     for rel, ch in wavs.items():
         write_wav(tmp_path / rel, ch, frames=frames)
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(text)
+    mf.write_text(text, encoding="utf-8")
     m = load_manifest(mf)
     plan = compile_manifest(m)
     ex = Executor(plan, m.manifest_dir, tmp_path / "out", tmp_path / "work",
@@ -133,7 +133,7 @@ def test_clip_guard_refuses_to_clip(tmp_path):
         "sources:\n  main: { path: main.wav, kind: bed, layout: stereo }\n"
         "elements:\n  bed: { from: main }\n"
         "policy:\n  loudness: { normalize: -5 }\n"
-        "targets:\n  - { format: iamf, out: dist/a.iamf }\n")
+        "targets:\n  - { format: iamf, out: dist/a.iamf }\n", encoding="utf-8")
     m = load_manifest(mf)
     plan = compile_manifest(m)
     ex = Executor(plan, m.manifest_dir, tmp_path / "out", tmp_path / "work",

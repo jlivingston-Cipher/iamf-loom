@@ -126,7 +126,7 @@ class Cache:
         d = self._dir(key)
         meta_p = d / "meta.json"
         try:
-            meta = json.loads(meta_p.read_text())
+            meta = json.loads(meta_p.read_text(encoding="utf-8"))
             art = d / meta["artifact"]
             if not art.is_file():
                 return None
@@ -153,5 +153,6 @@ class Cache:
         shutil.copyfile(out_file, tmp_a)
         os.replace(tmp_a, d / name)
         tmp_m = d / "meta.json.tmp"
-        tmp_m.write_text(json.dumps(meta, indent=1) + "\n")
+        tmp_m.write_text(json.dumps(meta, indent=1) + "\n",
+                         encoding="utf-8", newline="\n")
         os.replace(tmp_m, d / "meta.json")

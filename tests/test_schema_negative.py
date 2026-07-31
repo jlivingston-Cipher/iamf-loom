@@ -300,7 +300,7 @@ def test_m308_wrong_sample_rate(project, tmp_path):
         "sources:\n  m: { path: wavs/m.wav, kind: bed, layout: stereo }\n"
         "elements:\n  a: { from: m }\n"
         "targets:\n  - { format: iamf, out: x.iamf }\n"
-    )
+    , encoding="utf-8")
     with pytest.raises(CompileError) as e:
         load_manifest(mf)
     assert "M-308" in _codes(e)
@@ -452,7 +452,7 @@ def test_manifest_missing_file_m101(tmp_path):
 
 def test_manifest_bad_json_m102(tmp_path):
     mf = tmp_path / "manifest.json"
-    mf.write_text("{not json")
+    mf.write_text("{not json", encoding="utf-8")
     with pytest.raises(CompileError) as e:
         load_manifest(mf)
     assert "M-102" in _codes(e)

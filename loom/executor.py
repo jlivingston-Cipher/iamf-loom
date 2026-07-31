@@ -153,7 +153,10 @@ class Executor:
     def _step_write_config(self, step: Step, rec: dict) -> None:
         dst = Path(self._resolve(step.dst or ""))
         dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.write_text(step.content or "")
+        # UTF-8 + LF explicitly: encoder_main reads this textproto, and a
+        # locale-encoded write (cp1252 on Windows) corrupts any non-ASCII
+        # description the manifest carried (doc 97b).
+        dst.write_text(step.content or "", encoding="utf-8", newline="\n")
         rec["ok"] = dst.is_file() and dst.stat().st_size > 0
 
     def _step_gain_ride(self, step: Step, rec: dict) -> None:
@@ -476,6 +479,7 @@ class Executor:
                             self._cache_admit(tp, outp)
         self.ledger["ok"] = not failures
         ledger_path = self.out_dir / "loom-run.json"
-        ledger_path.write_text(json.dumps(self.ledger, indent=2) + "\n")
+        ledger_path.write_text(json.dumps(self.ledger, indent=2) + "\n",
+                               encoding="utf-8", newline="\n")
         return RunResult(ok=not failures, ledger_path=ledger_path,
                          failures=failures)

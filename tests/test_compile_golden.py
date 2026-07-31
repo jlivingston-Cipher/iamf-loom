@@ -49,7 +49,7 @@ CASES = [
 
 
 def _compile_case(project, name, wavs, extra):
-    text = (MANIFEST_DIR / f"{name}.yaml").read_text()
+    text = (MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8")
     mf = project(text, wavs, extra_files=extra, name=f"{name}.yaml")
     return compile_text(mf)
 
@@ -60,7 +60,7 @@ def test_golden_plan(project, name, wavs, extra):
     got = plan.dumps()
     golden_path = GOLDEN_DIR / f"{name}.plan.json"
     assert golden_path.is_file(), f"golden missing: {golden_path.name}"
-    assert got == golden_path.read_text(), (
+    assert got == golden_path.read_text(encoding="utf-8"), (
         f"plan for {name} deviates from the golden snapshot"
     )
 
@@ -76,7 +76,7 @@ def test_manifest_fixture_materializes_lf_only(project):
     keeps it pinned.
     """
     name = CASES[0][0]
-    text = (MANIFEST_DIR / f"{name}.yaml").read_text()
+    text = (MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8")
     mf = project(text, CASES[0][1], name=f"{name}.yaml")
     raw = mf.read_bytes()
     assert b"\r" not in raw, (
@@ -87,7 +87,7 @@ def test_manifest_fixture_materializes_lf_only(project):
 
 @pytest.mark.parametrize("name,wavs,extra", CASES[:3])
 def test_determinism_compile_twice(project, name, wavs, extra):
-    text = (MANIFEST_DIR / f"{name}.yaml").read_text()
+    text = (MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8")
     mf = project(text, wavs, extra_files=extra, name=f"{name}.yaml")
     assert compile_text(mf).dumps() == compile_text(mf).dumps()
 
@@ -96,7 +96,7 @@ def test_zero_hand_typed_metadata_in_manifests():
     """The manifests themselves contain no loudness numbers, no substream
     ids/orders, no codec strings beyond policy names (ADR-5, E-L2)."""
     for name, _w, _e in CASES:
-        text = (MANIFEST_DIR / f"{name}.yaml").read_text().lower()
+        text = (MANIFEST_DIR / f"{name}.yaml").read_text(encoding="utf-8").lower()
         for forbidden in ("integrated_loudness", "digital_peak", "true_peak",
                           "substream", "streamid", "iamf.001",
                           "parameter_rate"):
@@ -106,7 +106,7 @@ def test_zero_hand_typed_metadata_in_manifests():
 def test_golden_plans_have_no_absolute_paths():
     """Plans are environment-portable: only $-tokens and relative paths."""
     for name, _w, _e in CASES:
-        doc = json.loads((GOLDEN_DIR / f"{name}.plan.json").read_text())
+        doc = json.loads((GOLDEN_DIR / f"{name}.plan.json").read_text(encoding="utf-8"))
         for step in doc["steps"]:
             for a in step.get("argv", []) + step.get("argv_secondary", []):
                 assert not a.startswith("/"), f"{name}/{step['id']}: {a}"

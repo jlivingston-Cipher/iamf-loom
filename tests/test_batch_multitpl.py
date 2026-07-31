@@ -42,12 +42,12 @@ def _canon(obj) -> str:
 
 
 def _project(tmp_path, batch_text, titles=("ep01", "ep02")):
-    (tmp_path / "tpl.yaml").write_text(TPL)
-    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM)
+    (tmp_path / "tpl.yaml").write_text(TPL, encoding="utf-8")
+    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM, encoding="utf-8")
     for t in titles:
         write_wav(tmp_path / "wavs" / f"{t}.wav", 2)
     bf = tmp_path / "batch.yaml"
-    bf.write_text(batch_text)
+    bf.write_text(batch_text, encoding="utf-8")
     return bf
 
 
@@ -168,13 +168,13 @@ def test_extended_spec_hash_deterministic_and_sensitive(tmp_path):
     h1 = load_batch(bf).spec_hash
     assert load_batch(bf).spec_hash == h1            # deterministic
     # flips on any referenced template's BYTES (even a comment)
-    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM + "# prose\n")
+    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM + "# prose\n", encoding="utf-8")
     h2 = load_batch(bf).spec_hash
     assert h2 != h1
     # flips on WHICH template a job names
-    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM)
+    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM, encoding="utf-8")
     assert load_batch(bf).spec_hash == h1
-    bf.write_text(MIXED.replace("manifest: tpl_norm.yaml", "manifest: tpl.yaml"))
+    bf.write_text(MIXED.replace("manifest: tpl_norm.yaml", "manifest: tpl.yaml"), encoding="utf-8")
     assert load_batch(bf).spec_hash != h1
 
 
@@ -185,7 +185,7 @@ def test_journal_refused_after_template_edit(tmp_path):
     spec = load_batch(bf)
     state = tmp_path / "state"
     run_batch(spec, state_dir=state, no_cache=True)   # journal written
-    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM + "# edited\n")
+    (tmp_path / "tpl_norm.yaml").write_text(TPL_NORM + "# edited\n", encoding="utf-8")
     spec2 = load_batch(bf)
     assert spec2.spec_hash != spec.spec_hash
     with pytest.raises(BatchError) as ei:
@@ -201,7 +201,7 @@ def test_ledger_multitpl_contract(tmp_path):
     spec = load_batch(bf)
     _rc, ledger_path = run_batch(spec, state_dir=tmp_path / "state",
                                  no_cache=True)
-    led = json.loads(ledger_path.read_text())
+    led = json.loads(ledger_path.read_text(encoding="utf-8"))
     for k in REQUIRED_LEDGER_KEYS["batch"]:
         assert k in led, f"batch ledger missing {k}"
     for job in led["jobs"]:
@@ -224,7 +224,7 @@ def test_ledger_null_default_when_no_batch_manifest(tmp_path):
     spec = load_batch(bf)
     _rc, ledger_path = run_batch(spec, state_dir=tmp_path / "state",
                                  no_cache=True)
-    led = json.loads(ledger_path.read_text())
+    led = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert led["manifest_sha256"] is None
     assert led["manifests"] == {"tpl.yaml": spec.manifests["tpl.yaml"]}
 
@@ -232,7 +232,7 @@ def test_ledger_null_default_when_no_batch_manifest(tmp_path):
 # ---- cache-key template-independence (E-V3) ---------------------------------
 
 def _compile_from(tmp_path, tpl_name, text, title="ep01"):
-    (tmp_path / tpl_name).write_text(text)
+    (tmp_path / tpl_name).write_text(text, encoding="utf-8")
     m = load_manifest(tmp_path / tpl_name, variables={"title": title})
     return compile_manifest(m)
 

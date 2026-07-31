@@ -129,7 +129,7 @@ def project(tmp_path: Path):
         # goldens carry the LF-form hash. Default text mode writes CRLF on
         # Windows, which changes the hash and fails all 20 golden plans and
         # every explain golden (measured: doc 97 §3.2, 40 failures).
-        mf.write_text(manifest_text, newline="\n")
+        mf.write_text(manifest_text, newline="\n", encoding="utf-8")
         return mf
 
     return make

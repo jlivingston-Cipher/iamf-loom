@@ -67,7 +67,7 @@ def test_mp4box_route_compiles_repair_step(project):
     from .conftest import compile_text
     mf = project(
         (Path(__file__).parent / "fixtures" / "manifests"
-         / "5dot1_youtube_mp4.yaml").read_text(),
+         / "5dot1_youtube_mp4.yaml").read_text(encoding="utf-8"),
         {"wavs/main.wav": 6}, extra_files={"v.mp4": fake_mp4()})
     plan = compile_text(mf)
     steps = _steps_for(plan, "dist/youtube_candidate.mp4")
@@ -87,7 +87,7 @@ def test_oneshot_route_has_no_repair_step(project):
     from .conftest import compile_text
     mf = project(
         (Path(__file__).parent / "fixtures" / "manifests"
-         / "5dot1_opus_mp4_oneshot.yaml").read_text(),
+         / "5dot1_opus_mp4_oneshot.yaml").read_text(encoding="utf-8"),
         {"wavs/main.wav": 6}, extra_files={"v.mp4": fake_mp4()})
     plan = compile_text(mf)
     kinds = {s.kind for s in plan.steps}

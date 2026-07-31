@@ -25,7 +25,7 @@ MANIFEST = (
 
 def _compile(tmp_path, text=MANIFEST):
     mf = tmp_path / "manifest.yaml"
-    mf.write_text(text)
+    mf.write_text(text, encoding="utf-8")
     m = load_manifest(mf)
     return m, compile_manifest(m)
 

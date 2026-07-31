@@ -262,7 +262,7 @@ class _Journal:
         if not self.path.is_file():
             return {}
         out: dict[str, dict] = {}
-        for line in self.path.read_text().splitlines():
+        for line in self.path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             try:
@@ -282,7 +282,7 @@ class _Journal:
     def append(self, rec: dict) -> None:
         rec = {"spec": self.spec_hash, **rec}
         with self.lock:
-            with open(self.path, "a") as f:
+            with open(self.path, "a", encoding="utf-8", newline="\n") as f:
                 f.write(json.dumps(rec, sort_keys=True) + "\n")
                 f.flush()
                 os.fsync(f.fileno())
@@ -459,5 +459,6 @@ def run_batch(spec: BatchSpec, workers: int | None = None,
         },
     }
     ledger_path = state / "batch-ledger.json"
-    ledger_path.write_text(json.dumps(ledger, indent=2) + "\n")
+    ledger_path.write_text(json.dumps(ledger, indent=2) + "\n",
+                           encoding="utf-8", newline="\n")
     return (0 if n_failed == 0 else 2), ledger_path
