@@ -373,6 +373,15 @@ writes files — is registered only when the server is launched with
 `--enable-run`. The server also publishes `mcodes://catalog`, every `M-` code
 diagnostic this packager can emit.
 
+## Verified platforms
+
+Every push runs the test suite on **Linux, macOS, and Windows** against **Python 3.11 and
+3.12** — [`ci.yml`](.github/workflows/ci.yml) is the claim; the matrix is the evidence. The
+matrix installs no encode toolchain, so the toolchain-gated tests skip there by design: what
+these platforms are verified for is the manifest, planning, routing, repair, caching, batch
+and explain layers, not `run`'s subprocess halves. Nothing is claimed for a platform that does
+not have a green leg.
+
 ## How it works (the guarantees)
 
 - **Deterministic plans (R1/R10; docs 42/45).** `compile` emits the complete
