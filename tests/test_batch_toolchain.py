@@ -254,7 +254,7 @@ def test_eq6_sigkill_resume(tmp_path):
 
     # relaunch, same command: journaled jobs skip, the rest complete
     r = subprocess.run(argv, env=env, cwd=root, capture_output=True,
-                       text=True, timeout=300)
+                       text=True, encoding="utf-8", timeout=300)
     assert r.returncode == 0, r.stdout[-800:] + r.stderr[-400:]
     led = json.loads(
         (journal.parent / "batch-ledger.json").read_text(encoding="utf-8"))

@@ -86,7 +86,7 @@ def test_binaural_is_not_a_stereo_downmix(tmp_path):
         [str(root / "src/build-iamf/decoder_main"),
          f"--input_filename={intermediate}",
          f"--output_filename={downmix}", "--output_layout=2.0"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, (r.stderr or r.stdout)[-400:]
     assert downmix.is_file() and downmix.stat().st_size > 0   # F8
     # same source, same intermediate, two renders: an HRTF render cannot
@@ -108,7 +108,7 @@ def test_preview_opus_accept(tmp_path):
     dec = tmp_path / "dec.wav"
     ff = toolchain_root() / "bin/ffmpeg-install/bin/ffmpeg"
     r = subprocess.run([str(ff), "-y", "-hide_banner", "-i", str(out),
-                        str(dec)], capture_output=True, text=True)
+                        str(dec)], capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, (r.stderr or r.stdout)[-400:]
     wi = read_wav_info(dec)
     assert wi.channels == 2 and wi.sample_rate == 48000

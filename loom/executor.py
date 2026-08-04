@@ -165,7 +165,8 @@ class Executor:
         a1 = self._tool_argv0(step, self._resolve_argv(step.argv))
         for w in step.writes:
             Path(self._resolve(w)).parent.mkdir(parents=True, exist_ok=True)
-        r1 = subprocess.run(a1, capture_output=True, text=True)
+        r1 = subprocess.run(a1, capture_output=True, text=True,
+                            encoding="utf-8")
         outputs_ok = all(
             Path(self._resolve(w)).is_file()
             and Path(self._resolve(w)).stat().st_size > 0
@@ -174,7 +175,8 @@ class Executor:
         rec["ok"] = r1.returncode == 0 and outputs_ok
         if rec["ok"]:
             a2 = self._tool_argv0(step, self._resolve_argv(step.argv_secondary))
-            r2 = subprocess.run(a2, capture_output=True, text=True)
+            r2 = subprocess.run(a2, capture_output=True, text=True,
+                                encoding="utf-8")
             dpm = re.search(r"Peak level dB:\s*(-?[\d.]+)", r2.stderr)
             if r2.returncode != 0 or dpm is None:
                 raise ExecutionError(
@@ -246,7 +248,8 @@ class Executor:
         # pre-encode binaural WAV, F8-discipline throughout.
         p = step.params or {}
         argv = self._tool_argv0(step, self._resolve_argv(step.argv))
-        r = subprocess.run(argv, capture_output=True, text=True)
+        r = subprocess.run(argv, capture_output=True, text=True,
+                           encoding="utf-8")
         peaks = [float(x) for x in re.findall(
             r"Peak level dB:\s*([-+]?(?:[\d.]+|inf))", r.stderr)]
         per_channel = peaks[:-1] if len(peaks) > 1 else []
@@ -299,7 +302,8 @@ class Executor:
 
     def _step_measure_bs1770(self, step: Step, rec: dict) -> None:
         argv = self._tool_argv0(step, self._resolve_argv(step.argv))
-        r = subprocess.run(argv, capture_output=True, text=True)
+        r = subprocess.run(argv, capture_output=True, text=True,
+                           encoding="utf-8")
         rec["rc"] = r.returncode
         if r.returncode != 0:
             rec["ok"] = False
@@ -333,7 +337,8 @@ class Executor:
         argv = self._tool_argv0(step, self._resolve_argv(step.argv))
         for w in step.writes:
             Path(self._resolve(w)).parent.mkdir(parents=True, exist_ok=True)
-        r = subprocess.run(argv, capture_output=True, text=True)
+        r = subprocess.run(argv, capture_output=True, text=True,
+                           encoding="utf-8")
         rec["rc"] = r.returncode
         outputs_ok = True
         for w in step.writes:

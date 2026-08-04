@@ -55,7 +55,7 @@ def video_donor(tmp_path: Path) -> Path | None:
             [str(root / "bin/ffmpeg-install/bin/ffmpeg"), "-y", "-hide_banner",
              "-i", src, "-an", "-c:v", "copy",
              "-t", f"{FRAMES / 48000:.3f}", str(out)],
-            capture_output=True, text=True)
+            capture_output=True, text=True, encoding="utf-8")
         if r.returncode == 0 and out.is_file() and out.stat().st_size > 0:
             return out
     return None
@@ -140,7 +140,7 @@ def sentinel_errors(path: Path) -> list[str]:
     r = subprocess.run(
         [sys.executable, "-m", "sentinel", "validate", str(path),
          "--format", "json"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8",
         env={**os.environ,
              "PYTHONPATH": f"{repo / 'sentinel-oss'}:{repo / 'sentinel-pro'}"})
     assert r.stdout.strip(), f"sentinel produced no report: {r.stderr[-400:]}"
@@ -154,7 +154,7 @@ def decode_native(iamf: Path, layout: str, out_wav: Path):
         [str(root / "src/build-iamf/decoder_main"),
          f"--input_filename={iamf}", f"--output_filename={out_wav}",
          f"--output_layout={NATIVE_DECODE[layout]}"],
-        capture_output=True, text=True)
+        capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, (r.stderr or r.stdout)[-400:]
     assert out_wav.is_file() and out_wav.stat().st_size > 0  # F8
 
@@ -288,6 +288,6 @@ def test_youtube_preset_shape(tmp_path):
     from loom.toolchain import binary, resolve_root
     mp4box = binary(resolve_root(str(toolchain_root())), "mp4box")
     r = subprocess.run([str(mp4box), "-info", str(out)],
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8")
     blob = r.stdout + r.stderr
     assert "iamf.001.001" in blob.lower(), "RFC6381 iamf codec string missing"

@@ -60,5 +60,7 @@ jobs:
         working-directory: iamf-loom
       # Toolchain-gated and archived-fixture tests skip cleanly in this
       # environment; zero failures is the gate.
-      - run: python -m pytest tests -q
+      # Item 29 (doc 108): CPython's own detector for the doc-98 locale-encoding
+      # class — any default-encoding read/write/subprocess-decode fails the leg.
+      - run: python -X warn_default_encoding -W error::EncodingWarning -m pytest tests -q
         working-directory: iamf-loom
