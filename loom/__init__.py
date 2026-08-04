@@ -17,4 +17,4 @@ MP4Box) are invoked strictly as subprocesses across CLI boundaries (ADR-4);
 no code is linked against or derived from GPL/LGPL/reference sources.
 """
 
-__version__ = "0.8.1"
+__version__ = "0.8.2"
