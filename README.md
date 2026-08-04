@@ -443,6 +443,9 @@ not have a green leg.
   corpus + harness; ships the toolchain build script
 - [`iamf-sentinel-mcp`](https://github.com/jlivingston-Cipher/iamf-sentinel-mcp) — MCP server
   exposing the validator and this packager to agent runtimes
+- [`Inseglet`](https://github.com/inseglet-audio/inseglet) — authoring-side companion: one call
+  in REAPER (`spatial.export_loom_manifest`) renders Loom-order stems and emits a `loom: 0`
+  manifest this packager compiles as-is
 
 ## License & support
 
