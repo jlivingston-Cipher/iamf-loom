@@ -62,5 +62,11 @@ jobs:
       # environment; zero failures is the gate.
       # Item 29 (doc 108): CPython's own detector for the doc-98 locale-encoding
       # class — any default-encoding read/write/subprocess-decode fails the leg.
+      # doc 128: the sibling checkout above is now LOAD-BEARING, not assumed.
+      # Without it tests/test_executor_units.py skips at MODULE level, its 12
+      # tests are never collected, and the suite still exits 0 — a green leg
+      # one module short. This flag makes that state a hard error.
       - run: python -X warn_default_encoding -W error::EncodingWarning -m pytest tests -q
         working-directory: iamf-loom
+        env:
+          IAMF_SENTINEL_REQUIRE_FULL_COLLECTION: "1"

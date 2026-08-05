@@ -56,6 +56,54 @@ for p in (LOOM_ROOT, OSS_SRC, REPO_ROOT / "sentinel-oss",
     if sp not in sys.path:
         sys.path.insert(0, sp)
 
+
+# ------------------------------------------------- collection-completeness
+#
+# `test_executor_units.py` skips at MODULE level when OSS_SRC is None, so its
+# 12 tests are never collected and the suite still exits 0 (measured doc 128;
+# the same class as iamf-sentinel-pro's 17-test collapse, doc 127 §4). That is
+# the right behaviour for a contributor who cloned this repo alone, and a
+# silent lie on CI, where ci.yml supplies the sibling checkout — remove,
+# rename or silently fail that step and every leg goes on reporting success
+# with a module missing.
+#
+# IAMF_SENTINEL_REQUIRE_FULL_COLLECTION=1 (one flag for the whole stack; CI
+# sets it) turns the absent checkout into a hard error. It lives in
+# `pytest_configure`, which runs BEFORE any test module is imported, so it
+# covers any future module that depends on OSS_SRC and not merely today's one.
+
+REQUIRE_FULL_COLLECTION_ENV = "IAMF_SENTINEL_REQUIRE_FULL_COLLECTION"
+
+_FALSEY = {"", "0", "false", "no", "off"}
+
+
+def require_full_collection(environ=None) -> bool:
+    """True when the caller has demanded a fully-collected run.
+
+    Split out from the hook so the policy is testable without a subprocess.
+    """
+    env = os.environ if environ is None else environ
+    return env.get(REQUIRE_FULL_COLLECTION_ENV, "").strip().lower() not in _FALSEY
+
+
+INCOMPLETE_COLLECTION_ERROR = (
+    "{var}=1 demands a fully-collected run, but the iamf-sentinel SOURCE "
+    "checkout was not found.\n"
+    "  Effect: tests/test_executor_units.py skips at MODULE level, so 12 "
+    "tests are never collected and the suite would still exit 0.\n"
+    "  Fix: clone iamf-sentinel beside this repo (CI does this with a second "
+    "actions/checkout step), or set $IAMF_SENTINEL_SRC to a source checkout "
+    "that carries fixtures/build.py.\n"
+    "  If you are a contributor running this repo standalone, unset {var} "
+    "and the module will skip cleanly as designed."
+).format(var=REQUIRE_FULL_COLLECTION_ENV)
+
+
+def pytest_configure(config):                     # noqa: ARG001
+    """Refuse the collapsed-collection run when the caller asked for a full one."""
+    if require_full_collection() and OSS_SRC is None:
+        raise pytest.UsageError(INCOMPLETE_COLLECTION_ERROR)
+
 AMP = 0.125  # -18 dBFS
 FREQ0, FSTEP = 440.0, 60.0
 
