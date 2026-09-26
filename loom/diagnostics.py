@@ -101,6 +101,10 @@ CODES: dict[str, str] = {
     "M-416": "element/channel counts exceed every IAMF profile's limits "
              "(per mix presentation: simple 1 element/16 ch; base 2/18; "
              "base_enhanced 28/28)",
+    # M-41x additions (the iamf-tools Opus rate model)
+    "M-417": "a `policy.codec` Opus rate the iamf-tools encoder would refuse "
+             "for a substream the manifest has (6000 .. 512000 bps; -1000 "
+             "auto and -1 max pass through) and a target routes to iamf-tools",
     "M-420": "batch file missing, unparsable, or schema-invalid "
              "(expected `loom_batch: 0` with `manifest:` and `jobs:`)",
     "M-421": "duplicate job id or two jobs resolving to the same output path",

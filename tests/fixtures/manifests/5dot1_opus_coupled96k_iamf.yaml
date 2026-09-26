@@ -1,0 +1,14 @@
+loom: 0
+title: 5.1 opus raw, 96k stereo pairs
+sources:
+  main: { path: wavs/main.wav, kind: bed, layout: "5.1" }
+elements:
+  bed: { from: main }
+presentations:
+  - id: main
+    annotations: { en-us: "5.1 Mix" }
+    elements: [ { ref: bed } ]
+policy:
+  codec: { name: opus, bitrate_coupled: 96k, bitrate_uncoupled: 64k }
+targets:
+  - { format: iamf, out: dist/5dot1_96k.iamf }

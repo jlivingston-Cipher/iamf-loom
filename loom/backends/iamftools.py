@@ -97,7 +97,93 @@ def _esc(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def _codec_block(policy, source: Source, bits_override: int | None = None) -> list[str]:
+# The stereo-pair rate. The pinned encoder (iamf-tools
+# iamf/cli/proto_conversion/codec_config_utils.cc, GetSanitizedBitrate, pin
+# 93597f1) resolves each Opus substream's rate as: the entry for its id in
+# `substream_id_to_bitrate_override`, if there is one; else
+# `target_bitrate_per_channel` for a one-channel substream, and
+# `target_bitrate_per_channel * 2 * coupling_rate_adjustment` (default 1.0) for
+# a two-channel one. Loom's policy states the two rates directly
+# (bitrate_uncoupled, bitrate_coupled), as the FFmpeg backend passes them to
+# libopus. So every stereo pair whose rate is not already 2 x bitrate_uncoupled
+# gets an override naming bitrate_coupled: an integer, exactly the rate the
+# manifest wrote, with no float factor and no range narrower than the
+# encoder's own. At the 2:1 default nothing is written, and the plan is
+# byte-identical to its earlier form.
+OPUS_RATE_RANGE = (6000, 512000)     # kMinOpusBitrate, kMaxOpusBitrate: any base or override
+OPUS_RATE_PASSTHROUGH = (-1000, -1)  # OPUS_AUTO, OPUS_BITRATE_MAX: forwarded to libopus as-is
+
+
+def substream_kinds(m: Manifest) -> tuple[list[int], bool]:
+    """(the ids of every stereo-pair substream, whether any one-channel
+    substream exists) — by the ids this emitter assigns (element_allocation),
+    across every element, since one codec config serves them all."""
+    alloc = element_allocation(m)
+    pairs: list[int] = []
+    single = False
+    for name, el in m.elements.items():
+        src = m.sources[el.source]
+        base = alloc[name][1]
+        if src.kind == "bed":
+            for i, sub in enumerate(BEDS[src.layout].substreams):
+                if sub.coupled:
+                    pairs.append(base + i)
+                else:
+                    single = True
+        else:  # ambisonics (mono mode): one channel per substream
+            single = True
+    return pairs, single
+
+
+def coupled_overrides(m: Manifest) -> dict[int, int]:
+    """substream id -> bitrate_coupled for every stereo pair, when the pair
+    rate differs from what the per-channel rate alone gives it (2 x)."""
+    cod = m.policy.codec
+    if cod.name != "opus" or cod.bitrate_coupled == 2 * cod.bitrate_uncoupled:
+        return {}
+    return {sid: cod.bitrate_coupled for sid in substream_kinds(m)[0]}
+
+
+def _opus_rate_ok(rate: int) -> bool:
+    lo, hi = OPUS_RATE_RANGE
+    return rate in OPUS_RATE_PASSTHROUGH or lo <= rate <= hi
+
+
+def opus_rate_findings(m: Manifest) -> list[tuple[str, str]]:
+    """(path, message) for each policy.codec rate that reaches the pinned
+    encoder for a substream this manifest has and that it would refuse at
+    encode time — and nothing it would accept (M-417)."""
+    cod = m.policy.codec
+    if cod.name != "opus":
+        return []
+    pairs, single = substream_kinds(m)
+    overridden = bool(coupled_overrides(m))
+    lo, hi = OPUS_RATE_RANGE
+    found: list[tuple[str, str]] = []
+    # Written whether or not any substream uses it, into an int32 field: a
+    # value that does not fit is a config the encoder cannot even parse.
+    if not -2 ** 31 <= cod.bitrate_uncoupled < 2 ** 31:
+        return [("policy.codec.bitrate_uncoupled",
+                 f"bitrate_uncoupled {cod.bitrate_uncoupled} bps does not fit "
+                 f"the encoder's 32-bit rate field (a substream takes {lo} .. "
+                 f"{hi} bps)")]
+    # The per-channel rate is the base of every one-channel substream, and of
+    # every pair that no override replaces.
+    if (single or (pairs and not overridden)) and not _opus_rate_ok(cod.bitrate_uncoupled):
+        found.append(("policy.codec.bitrate_uncoupled",
+                      f"bitrate_uncoupled {cod.bitrate_uncoupled} bps is outside "
+                      f"what the iamf-tools Opus encoder accepts for a substream "
+                      f"({lo} .. {hi} bps)"))
+    if overridden and pairs and not _opus_rate_ok(cod.bitrate_coupled):
+        found.append(("policy.codec.bitrate_coupled",
+                      f"bitrate_coupled {cod.bitrate_coupled} bps is outside "
+                      f"what the iamf-tools Opus encoder accepts for a stereo "
+                      f"pair ({lo} .. {hi} bps)"))
+    return found
+
+
+def _codec_block(policy, source: Source, bits_override: int | None = None,
+                 overrides: dict[int, int] | None = None) -> list[str]:
     if policy.codec.name == "opus":
         per_channel = policy.codec.bitrate_uncoupled
         return [
@@ -111,6 +197,8 @@ def _codec_block(policy, source: Source, bits_override: int | None = None) -> li
             "      input_sample_rate: 48000",
             "      opus_encoder_metadata {",
             f"        target_bitrate_per_channel: {per_channel}",
+            *(f"        substream_id_to_bitrate_override {{ key: {sid} value: {rate} }}"
+              for sid, rate in sorted((overrides or {}).items())),
             "        application: APPLICATION_AUDIO",
             "        use_float_api: false",
             "      }",
@@ -380,7 +468,8 @@ def emit_textproto(m: Manifest, staged: dict[str, str],
         f"  additional_profile: {prof}",
         "}",
         "",
-        *_codec_block(m.policy, first_source, bits_override),
+        *_codec_block(m.policy, first_source, bits_override,
+                      overrides=coupled_overrides(m)),
         "",
         *element_lines,
     ]

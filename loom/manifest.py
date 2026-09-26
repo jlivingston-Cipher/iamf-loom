@@ -48,15 +48,17 @@ def _check_ident(name: Any, path: str, c: Collector) -> bool:
 def _parse_bitrate(v: Any, path: str, c: Collector, default: int) -> int:
     if v is None:
         return default
-    if isinstance(v, int):
+    if isinstance(v, int) and not isinstance(v, bool):   # YAML `true` is not 1 bps
         return v
     if isinstance(v, str):
         s = v.strip().lower()
         try:
             if s.endswith("k"):
-                return int(float(s[:-1]) * 1000)
+                # rounded, not truncated: "64.1k" is 64100 (float gives
+                # 64099.99…, which int() used to cut to 64099)
+                return int(round(float(s[:-1]) * 1000))
             return int(s)
-        except ValueError:
+        except (ValueError, OverflowError):
             pass
     c.add("M-202", path, f"expected a bitrate like '128k' or 128000, got {v!r}")
     return default

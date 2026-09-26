@@ -505,10 +505,22 @@ def compile_manifest(m: Manifest) -> Plan:
     # presentations[0] -> mix_presentation_id 42 (emitter arithmetic).
     anchor_mix_id = 42 if n_pres > 1 else None
 
+    # M-417: a codec rate the iamf-tools Opus encoder would refuse is refused
+    # here instead, where a target is routed to it (every preview, every raw
+    # .iamf, every MP4Box mux) — the FFmpeg one-shot passes rates to libopus
+    # directly and is not checked. Each finding is reported once per manifest.
+    rate_findings = it.opus_rate_findings(m)
+    rates_reported = False
     for ti, t in enumerate(m.targets):
         tpath = f"targets[{ti}]"
         route = route_target(t, m, c, tpath)
         if route is None:
+            continue
+        if route.backend == "iamftools" and rate_findings:
+            if not rates_reported:
+                for path, msg in rate_findings:
+                    c.add("M-417", path, f"{msg}; {tpath} is routed to iamf-tools")
+                rates_reported = True
             continue
         stem = _slug(t.out.rsplit("/", 1)[-1].rsplit(".", 1)[0]) or f"t{ti}"
         prefix = f"t{ti:02d}-{stem}"

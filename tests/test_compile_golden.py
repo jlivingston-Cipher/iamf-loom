@@ -45,6 +45,10 @@ CASES = [
      {"wavs/main.wav": 12, "wavs/vo_en.wav": 2, "wavs/vo_de.wav": 2}, {}),
     ("multilang_normalize_iamf",
      {"wavs/main.wav": 12, "wavs/vo_en.wav": 2, "wavs/vo_de.wav": 2}, {}),
+    # The stereo-pair rate: the only golden off the default 2:1 pair/single
+    # ratio, so the only one whose Opus block carries per-substream
+    # overrides for its pairs — appended, the 20 existing goldens untouched
+    ("5dot1_opus_coupled96k_iamf", {"wavs/main.wav": 6}, {}),
 ]
 
 
