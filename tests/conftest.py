@@ -99,10 +99,83 @@ INCOMPLETE_COLLECTION_ERROR = (
 ).format(var=REQUIRE_FULL_COLLECTION_ENV)
 
 
+# ------------------------------------------------------ toolchain requirement
+#
+# Every test that runs a real encode sits behind `needs_toolchain`, keyed on an
+# executable `src/build-iamf/encoder_main` under `$LOOM_TOOLCHAIN` (else
+# `$SENTINEL_TOOLCHAIN`, else a Linux default that exists only in the workspace
+# this suite was first written in). When none resolves, those tests SKIP and
+# the suite exits 0. That is right for CI, which installs no toolchain, and for
+# a contributor without one. It is a silent lie on a machine that was meant to
+# test encodes: measured on macOS with the toolchain built but the variable
+# unset, a plain run read 300 passed / 45 skipped / exit 0 with 21 encode tests
+# never run, among them the stereo-pair rate test.
+#
+# LOOM_REQUIRE_TOOLCHAIN=1 says "this run is meant to test encodes": a toolchain
+# that does not resolve becomes a hard error before collection. Opt-in, and
+# deliberately NOT implied by IAMF_SENTINEL_REQUIRE_FULL_COLLECTION, because CI
+# sets that flag and has no toolchain.
+
+REQUIRE_TOOLCHAIN_ENV = "LOOM_REQUIRE_TOOLCHAIN"
+DEFAULT_TOOLCHAIN = "/home/claude/iamf-wp1"
+ENCODER_REL = Path("src/build-iamf/encoder_main")
+
+
+def require_toolchain(environ=None) -> bool:
+    """True when the caller has demanded a run that tests real encodes."""
+    env = os.environ if environ is None else environ
+    return env.get(REQUIRE_TOOLCHAIN_ENV, "").strip().lower() not in _FALSEY
+
+
+_DEFAULT_SOURCE = ("the built-in default; neither $LOOM_TOOLCHAIN nor "
+                   "$SENTINEL_TOOLCHAIN is set")
+
+
+def toolchain_candidate(environ=None) -> tuple[Path, str]:
+    """The toolchain root this run would use, and where that answer came from."""
+    env = os.environ if environ is None else environ
+    for var in ("LOOM_TOOLCHAIN", "SENTINEL_TOOLCHAIN"):
+        if env.get(var):
+            return Path(env[var]), "$" + var
+    return Path(DEFAULT_TOOLCHAIN), _DEFAULT_SOURCE
+
+
+MISSING_TOOLCHAIN_ERROR = (
+    "{var}=1 demands a run that tests real encodes, but no IAMF toolchain was "
+    "found.\n"
+    "  Looked for: {encoder} (root from {source}), an executable file.\n"
+    "  Effect: every toolchain test would skip and the suite would still exit "
+    "0 with no encode tested.\n"
+    "  Fix: set $LOOM_TOOLCHAIN to the toolchain root, the directory that "
+    "holds src/build-iamf/encoder_main.\n"
+    "  If this run is not meant to test encodes, unset {var} and those tests "
+    "will skip as designed."
+)
+
+
+def missing_toolchain_error(environ=None) -> str | None:
+    """The refusal text when the switch is on and no toolchain resolves."""
+    if not require_toolchain(environ) or toolchain_root(environ) is not None:
+        return None
+    root, source = toolchain_candidate(environ)
+    return MISSING_TOOLCHAIN_ERROR.format(
+        var=REQUIRE_TOOLCHAIN_ENV, encoder=root / ENCODER_REL, source=source)
+
+
 def pytest_configure(config):                     # noqa: ARG001
-    """Refuse the collapsed-collection run when the caller asked for a full one."""
+    """Refuse a run that cannot do what the caller asked of it.
+
+    Both guards are checked before anything is refused, so a run that fails
+    both says so once rather than one fix at a time.
+    """
+    errors = []
     if require_full_collection() and OSS_SRC is None:
-        raise pytest.UsageError(INCOMPLETE_COLLECTION_ERROR)
+        errors.append(INCOMPLETE_COLLECTION_ERROR)
+    toolchain_error = missing_toolchain_error()
+    if toolchain_error is not None:
+        errors.append(toolchain_error)
+    if errors:
+        raise pytest.UsageError("\n\n".join(errors))
 
 AMP = 0.125  # -18 dBFS
 FREQ0, FSTEP = 440.0, 60.0
@@ -190,15 +263,15 @@ def compile_text(manifest_path: Path):
     return compile_manifest(load_manifest(manifest_path))
 
 
-def toolchain_root() -> Path | None:
-    root = Path(os.environ.get("LOOM_TOOLCHAIN")
-                or os.environ.get("SENTINEL_TOOLCHAIN")
-                or "/home/claude/iamf-wp1")
-    enc = root / "src/build-iamf/encoder_main"
+def toolchain_root(environ=None) -> Path | None:
+    root, _ = toolchain_candidate(environ)
+    enc = root / ENCODER_REL
     return root if enc.is_file() and os.access(enc, os.X_OK) else None
 
 
 needs_toolchain = pytest.mark.skipif(
     toolchain_root() is None,
-    reason="IAMF toolchain not present (build per wp3-scripts + addendum)",
+    reason="IAMF toolchain not found: set $LOOM_TOOLCHAIN to the root that "
+           "holds src/build-iamf/encoder_main (and $LOOM_REQUIRE_TOOLCHAIN=1 "
+           "to make its absence a failure)",
 )

@@ -51,6 +51,7 @@ def _run(root: Path, *, guard: str | None) -> subprocess.CompletedProcess:
     env = dict(os.environ)
     env["IAMF_SENTINEL_SRC"] = ""          # never inherit a real one
     env.pop(REQUIRE_FULL_COLLECTION_ENV, None)
+    env.pop("LOOM_REQUIRE_TOOLCHAIN", None)  # test_toolchain_guard.py's switch
     if guard is not None:
         env[REQUIRE_FULL_COLLECTION_ENV] = guard
     return subprocess.run(

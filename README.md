@@ -382,6 +382,11 @@ these platforms are verified for is the manifest, planning, routing, repair, cac
 and explain layers, not `run`'s subprocess halves. Nothing is claimed for a platform that does
 not have a green leg.
 
+To run the toolchain-gated tests yourself, point `LOOM_TOOLCHAIN` at the toolchain root (the
+directory holding `src/build-iamf/encoder_main`) and also set `LOOM_REQUIRE_TOOLCHAIN=1`.
+Without the second variable, a toolchain that is not found makes every encode test skip and
+the run still pass; with it, the run fails before collecting anything and says where it looked.
+
 ## How it works (the guarantees)
 
 - **Deterministic plans (R1/R10; docs 42/45).** `compile` emits the complete
