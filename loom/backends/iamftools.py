@@ -7,6 +7,24 @@ code — no template instantiation in the product path (D-L6).
 
 Loudness is measured natively by encoder_main per declared loudness layout
 (WP1 G2b) — computed, never typed (ADR-5).
+
+Proven against two encoder builds: iamf-tools v3.0.0 (5ad3728) and the pin
+93597f1. Every encode the golden plans describe — 22 textprotos — produces
+the same bytes with encoder_main built at either, from the same inputs
+(measured on one macOS arm64 host, both builds linking the same libopus and
+libFLAC).
+
+v3.0.0 marks these fields of that surface deprecated; each is still written,
+because one textproto has to serve both builds:
+  codec_id; substream_count + coupled_substream_count (channel layers);
+  FLAC minimum_block_size + maximum_block_size
+      — 93597f1 refuses a textproto without them; v3.0.0 ignores them
+  default_mix_gain
+      — the only spelling 93597f1 has; v3.0.0 prefers default_mix_gain_db
+  ambisonics_mode
+      — deprecated at both pins, required by neither
+v3.0.0 logs deprecation warnings on these textprotos and encodes the same
+bytes with or without the fields.
 """
 
 from __future__ import annotations
@@ -30,6 +48,9 @@ CODEC_CONFIG_ID = 200
 
 # R8 (D-Z2): per-MIX-PRESENTATION caps, matching the pinned encoder's
 # profile_filter.cc (probe P1: enforced by execution) and IAMF v1.1.0.
+# Read at iamf-tools v3.0.0 (5ad3728) as well: its
+# kProfileVersionAndMaxAudioElements / kProfileVersionAndMaxChannels rows for
+# these three profiles are the same as at the pin 93597f1.
 PROFILE_CAPS = {              # profile -> (max elements, max channels)
     "simple": (1, 16),
     "base": (2, 18),
@@ -99,7 +120,8 @@ def _esc(s: str) -> str:
 
 # The stereo-pair rate. The pinned encoder (iamf-tools
 # iamf/cli/proto_conversion/codec_config_utils.cc, GetSanitizedBitrate, pin
-# 93597f1) resolves each Opus substream's rate as: the entry for its id in
+# 93597f1; that file is byte-identical at v3.0.0 = 5ad3728)
+# resolves each Opus substream's rate as: the entry for its id in
 # `substream_id_to_bitrate_override`, if there is one; else
 # `target_bitrate_per_channel` for a one-channel substream, and
 # `target_bitrate_per_channel * 2 * coupling_rate_adjustment` (default 1.0) for
@@ -208,9 +230,13 @@ def _codec_block(policy, source: Source, bits_override: int | None = None,
         ]
     if policy.codec.name == "flac":
         # Phase 2 (R4, preset: archive): lossless mezzanine. Proto quirks
-        # (pinned iamf-tools 93597f1 testdata): STREAMINFO bits_per_sample is
-        # stored MINUS ONE ("15 # Flac interprets this as 16 bits");
-        # min/max block size must equal num_samples_per_frame.
+        # (iamf-tools testdata, the same at the pin 93597f1 and at
+        # v3.0.0 = 5ad3728): STREAMINFO bits_per_sample is stored MINUS
+        # ONE ("15 # Flac interprets this as 16 bits"). At 93597f1 min/max
+        # block size must equal num_samples_per_frame, and a config without
+        # them is refused; v3.0.0 marks both fields deprecated and derives
+        # them. They stay written: the encode is byte-identical either way at
+        # v3.0.0, and 93597f1 needs them.
         bps = (bits_override or source.bits) - 1
         return [
             "codec_config_metadata {",
