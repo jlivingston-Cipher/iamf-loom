@@ -312,7 +312,9 @@ def test_the_kernel_and_mp4box_may_live_outside_the_root(tmp_path):
     tc = _toolchain(tmp_path, encoder=True, without=("kernel", "mp4box"))
     bindir = tmp_path / "elsewhere"
     kernel = _tool(bindir / "sentinel-dsp")
-    _tool(bindir / "MP4Box")
+    # Found by PATH lookup, which on Windows matches a bare name only against
+    # the executable extensions; the kernel above is named by its full path.
+    _tool(bindir / ("MP4Box.exe" if os.name == "nt" else "MP4Box"))
     root = _synthetic_repo(tmp_path)
 
     proc, out = _run(root, switch="1", toolchain=tc,
