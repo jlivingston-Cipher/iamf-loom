@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import os
+import shutil
 import struct
 import sys
 from pathlib import Path
@@ -162,16 +163,133 @@ def missing_toolchain_error(environ=None) -> str | None:
         var=REQUIRE_TOOLCHAIN_ENV, encoder=root / ENCODER_REL, source=source)
 
 
+# ----------------------------------------------- the rest of the toolchain
+#
+# The encoder is one tool of six. A root that holds it and nothing else still
+# cannot run most routes, and the suite reports that badly in two ways:
+#
+# - without the loudness kernel, the decoder, FFmpeg or MP4Box the tests that
+#   need them FAIL one by one, deep in a plan step, and read like regressions
+#   (measured on macOS: 13 failures, every one "sentinel-dsp not found");
+# - without a video donor, or without numpy, the tests that need them SKIP and
+#   the run can still exit 0 (measured: 13 A/V skips and 4 spectral-check
+#   skips, so the FFmpeg one-shot route and the YouTube preset had never run on
+#   that machine while its runs read as passing apart from the kernel).
+#
+# With the switch on, "the suite passed" is meant to say every encode path ran.
+# So the switch also refuses, before collection and in one message, a root that
+# has an encoder but lacks any of the parts below. The lookup rules are the
+# product's own (loom/toolchain.py): the kernel may be named by $SENTINEL_DSP
+# or sit on PATH, MP4Box may sit on PATH, everything else lives under the root.
+
+DECODER_REL = Path("src/build-iamf/decoder_main")
+FFMPEG_REL = Path("bin/ffmpeg-install/bin/ffmpeg")
+MP4BOX_REL = Path("bin/MP4Box")
+KERNEL_REL = Path("bin/sentinel-dsp")
+VIDEO_ENV = "LOOM_TEST_VIDEO"
+
+
+def _is_executable(p: Path) -> bool:
+    return p.is_file() and os.access(p, os.X_OK)
+
+
+def _on_path(name: str, env) -> bool:
+    return shutil.which(name, path=env.get("PATH", "")) is not None
+
+
+def numpy_available() -> bool:
+    """Whether the spectral channel-identity check can run in this interpreter."""
+    try:
+        import numpy  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+def missing_components(environ=None, *,
+                       numpy_ok: bool | None = None) -> list[tuple[str, str, str]]:
+    """What an encode-testing run would lack: (part, where it was looked for,
+    what its absence costs), one entry per missing part.
+
+    Empty when no encoder resolves: that is the other refusal's to report, and
+    a wrong root would otherwise be listed six times over.
+    """
+    env = os.environ if environ is None else environ
+    root = toolchain_root(env)
+    if root is None:
+        return []
+    out = []
+    if not _is_executable(root / DECODER_REL):
+        out.append(("decoder_main", f"{root / DECODER_REL}",
+                    "every render fails, so no loudness is measured and no "
+                    "decoded channel is checked"))
+    named = env.get("SENTINEL_DSP", "")
+    kernel = ((named and named != "off" and _is_executable(Path(named)))
+              or _is_executable(root / KERNEL_REL) or _on_path("sentinel-dsp", env))
+    if not kernel:
+        out.append(("sentinel-dsp, the loudness kernel",
+                    f"$SENTINEL_DSP, then {root / KERNEL_REL}, then PATH",
+                    "every loudness-measure step fails, test by test"))
+    if not _is_executable(root / FFMPEG_REL):
+        out.append(("ffmpeg", f"{root / FFMPEG_REL}",
+                    "the FFmpeg one-shot route, gain rides and Opus previews "
+                    "cannot run, and the video donor cannot be trimmed"))
+    if not (_is_executable(root / MP4BOX_REL) or _on_path("MP4Box", env)):
+        out.append(("MP4Box", f"{root / MP4BOX_REL}, then PATH",
+                    "every MP4 remux fails, the YouTube preset among them"))
+    video = env.get(VIDEO_ENV, "")
+    if not (video and Path(video).is_file() and Path(video).stat().st_size > 0):
+        out.append(("a video donor",
+                    f"${VIDEO_ENV} ({video!r})" if video else f"${VIDEO_ENV} (unset)",
+                    "every audio-with-video test SKIPS and the run can still "
+                    "exit 0 with the FFmpeg one-shot route never run"))
+    if not (numpy_available() if numpy_ok is None else numpy_ok):
+        out.append(("numpy", "an import in this interpreter",
+                    "the spectral channel-identity check SKIPS after the "
+                    "encode, taking the rest of its test with it"))
+    return out
+
+
+INCOMPLETE_TOOLCHAIN_ERROR = (
+    "{var}=1 demands a run that tests real encodes, and the toolchain at "
+    "{root} has an encoder but not everything the encode tests use.\n"
+    "{parts}\n"
+    "  Effect: the run would fail or skip tests for want of a tool, and a "
+    "pass would not mean that every encode path ran.\n"
+    "  Fix: add what is missing to the toolchain root (root from {source}), "
+    "or name it with the variable shown.\n"
+    "  If this run is not meant to test encodes, unset {var} and the "
+    "toolchain tests will run or skip as they did before."
+)
+
+
+def incomplete_toolchain_error(environ=None, *,
+                               numpy_ok: bool | None = None) -> str | None:
+    """The refusal text when the switch is on, an encoder resolves, and some
+    other part of an encode-testing run does not."""
+    if not require_toolchain(environ):
+        return None
+    missing = missing_components(environ, numpy_ok=numpy_ok)
+    if not missing:
+        return None
+    root, source = toolchain_candidate(environ)
+    parts = "\n".join(
+        f"  Missing: {name}. Looked for: {where}.\n    Without it {cost}."
+        for name, where, cost in missing)
+    return INCOMPLETE_TOOLCHAIN_ERROR.format(
+        var=REQUIRE_TOOLCHAIN_ENV, root=root, source=source, parts=parts)
+
+
 def pytest_configure(config):                     # noqa: ARG001
     """Refuse a run that cannot do what the caller asked of it.
 
-    Both guards are checked before anything is refused, so a run that fails
-    both says so once rather than one fix at a time.
+    Every guard is checked before anything is refused, so a run that fails
+    more than one says so once rather than one fix at a time.
     """
     errors = []
     if require_full_collection() and OSS_SRC is None:
         errors.append(INCOMPLETE_COLLECTION_ERROR)
-    toolchain_error = missing_toolchain_error()
+    toolchain_error = missing_toolchain_error() or incomplete_toolchain_error()
     if toolchain_error is not None:
         errors.append(toolchain_error)
     if errors:

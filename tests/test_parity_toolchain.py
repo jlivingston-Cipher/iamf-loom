@@ -26,7 +26,9 @@ from loom.compiler import compile_manifest
 from loom.executor import Executor
 from loom.manifest import load_manifest
 
-from .conftest import channel_freq, needs_toolchain, toolchain_root, write_wav
+from .conftest import (REQUIRE_TOOLCHAIN_ENV, VIDEO_ENV, channel_freq,
+                       needs_toolchain, require_toolchain, toolchain_root,
+                       write_wav)
 
 try:
     import numpy as _np
@@ -58,6 +60,14 @@ def video_donor(tmp_path: Path) -> Path | None:
             capture_output=True, text=True, encoding="utf-8")
         if r.returncode == 0 and out.is_file() and out.stat().st_size > 0:
             return out
+        if require_toolchain():
+            # The switch has already established that the donor and FFmpeg
+            # exist, so this is a donor that cannot be used. Skipping here
+            # would let a run that was asked to test the A/V routes pass
+            # without them.
+            pytest.fail(f"${VIDEO_ENV} ({src}) could not be trimmed by stream "
+                        f"copy, and {REQUIRE_TOOLCHAIN_ENV}=1 demands the "
+                        f"audio-with-video tests run: {(r.stderr or r.stdout)[-300:]}")
     return None
 
 

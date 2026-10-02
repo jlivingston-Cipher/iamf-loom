@@ -386,6 +386,11 @@ To run the toolchain-gated tests yourself, point `LOOM_TOOLCHAIN` at the toolcha
 directory holding `src/build-iamf/encoder_main`) and also set `LOOM_REQUIRE_TOOLCHAIN=1`.
 Without the second variable, a toolchain that is not found makes every encode test skip and
 the run still pass; with it, the run fails before collecting anything and says where it looked.
+The second variable asks for the whole toolchain, not only the encoder: the run is refused in
+the same way, naming each missing part, when the root has an encoder but lacks `decoder_main`,
+the `sentinel-dsp` loudness kernel, FFmpeg (`bin/ffmpeg-install/bin/ffmpeg`), MP4Box, a video
+donor (`LOOM_TEST_VIDEO`, any MP4 whose H.264 track can be stream-copied) or numpy. A pass
+with the variable set therefore means every encode route ran.
 
 ## How it works (the guarantees)
 
