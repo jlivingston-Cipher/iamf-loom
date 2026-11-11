@@ -125,7 +125,9 @@ def test_textproto_no_loudness_fields_and_correct_arithmetic(project):
     plan = compile_text(mf)
     cfg = _step(plan, "-cfg")
     tp = cfg.content
-    assert "substream_count: 7" in tp and "coupled_substream_count: 5" in tp
+    # IA-0059: the layer's substream counts are derived by the encoder, no longer written
+    assert "substream_count" not in tp and "coupled_substream_count" not in tp
+    assert "codec_id" not in tp and "ambisonics_mode" not in tp
     assert "LOUDSPEAKER_LAYOUT_7_1_4_CH" in tp
     assert "CHANNEL_LABEL_LSS_7" in tp  # WAV order labels
     # ADR-5: no typed loudness anywhere; encoder measures natively (G2b)
@@ -148,7 +150,8 @@ def test_textproto_profile_and_gain(project):
     plan = compile_text(mf)
     tp = _step(plan, "-cfg").content
     assert "PROFILE_VERSION_BASE" in tp          # youtube floor (G9/G11)
-    assert "default_mix_gain: -512" in tp        # -2 dB in Q7.8
+    assert "default_mix_gain_db { q7_dot8: -512 }" in tp   # -2 dB in Q7.8 (IA-0059)
+    assert "default_mix_gain:" not in tp
     assert "SOUND_SYSTEM_B_0_5_0" in tp          # native 5.1 loudness layout
 
 
@@ -163,4 +166,5 @@ def test_lpcm_codec_block(project):
     )
     plan = compile_text(mf)
     tp = _step(plan, "-cfg").content
-    assert "CODEC_ID_LPCM" in tp and "sample_size: 24" in tp
+    # IA-0059: the codec is named by its decoder_config block; codec_id is deprecated, not written
+    assert "decoder_config_lpcm" in tp and "sample_size: 24" in tp and "codec_id" not in tp

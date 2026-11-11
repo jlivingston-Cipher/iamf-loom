@@ -257,7 +257,7 @@ def test_flac_compiles_and_routes_iamftools(project):
     plan = compile_text(mf)
     assert plan.targets[0].backend == "iamftools"
     cfg = next(s for s in plan.steps if s.kind == "write_config")
-    assert "CODEC_ID_FLAC" in cfg.content
+    assert "decoder_config_flac" in cfg.content and "codec_id" not in cfg.content   # IA-0059
     assert "compression_level: 8" in cfg.content
     # the -1 STREAMINFO quirk (24-bit fixture WAV -> 23)
     assert "bits_per_sample: 23" in cfg.content

@@ -16,18 +16,13 @@ from the same inputs (measured on one macOS arm64 host, the builds linking the
 same libopus and libFLAC; v4.0.0 against v3.0.0 also on 3 s and 6 s inputs,
 and every decode of those streams with both decoder_main builds).
 
-v3.0.0 marks these fields of that surface deprecated (v4.0.0 keeps them
-deprecated); each is still written, because one textproto had to serve both
-v3.0.0 and 93597f1 (dropping them is a separate change, IA-0059):
-  codec_id; substream_count + coupled_substream_count (channel layers);
-  FLAC minimum_block_size + maximum_block_size
-      — 93597f1 refuses a textproto without them; v3.0.0 ignores them
-  default_mix_gain
-      — the only spelling 93597f1 has; v3.0.0 prefers default_mix_gain_db
-  ambisonics_mode
-      — deprecated at both pins, required by neither
-v3.0.0 and v4.0.0 log deprecation warnings on these textprotos and encode the
-same bytes with or without the fields.
+The textproto no longer writes the fields v3.0.0 and v4.0.0 mark deprecated
+(IA-0059): codec_id; a channel layer's substream_count and
+coupled_substream_count; FLAC minimum_block_size / maximum_block_size; and
+ambisonics_mode -- the encoder derives each -- and the mix gains are written as
+default_mix_gain_db { q7_dot8: N }, the same Q7.8 value under its current
+name. 93597f1 refuses such a textproto; nothing builds it for Loom any more.
+Measured on v4.0.0: every golden encode gives the same bytes as before.
 """
 
 from __future__ import annotations
@@ -216,7 +211,6 @@ def _codec_block(policy, source: Source, bits_override: int | None = None,
             "codec_config_metadata {",
             f"  codec_config_id: {CODEC_CONFIG_ID}",
             "  codec_config {",
-            "    codec_id: CODEC_ID_OPUS",
             "    num_samples_per_frame: 960",
             "    decoder_config_opus {",
             "      version: 1",
@@ -239,14 +233,13 @@ def _codec_block(policy, source: Source, bits_override: int | None = None,
         # ONE ("15 # Flac interprets this as 16 bits"). At 93597f1 min/max
         # block size must equal num_samples_per_frame, and a config without
         # them is refused; v3.0.0 and v4.0.0 mark both fields deprecated and
-        # derive them. They stay written: the encode is byte-identical either
-        # way at v3.0.0 and v4.0.0, and 93597f1 needs them (IA-0059).
+        # derive them, so they are no longer written (IA-0059): the encode is
+        # byte-identical either way at v3.0.0 and v4.0.0.
         bps = (bits_override or source.bits) - 1
         return [
             "codec_config_metadata {",
             f"  codec_config_id: {CODEC_CONFIG_ID}",
             "  codec_config {",
-            "    codec_id: CODEC_ID_FLAC",
             "    num_samples_per_frame: 1024",
             "    decoder_config_flac {",
             "      metadata_blocks {",
@@ -254,8 +247,6 @@ def _codec_block(policy, source: Source, bits_override: int | None = None,
             "          block_type: FLAC_BLOCK_TYPE_STREAMINFO",
             "        }",
             "        stream_info {",
-            "          minimum_block_size: 1024",
-            "          maximum_block_size: 1024",
             f"          sample_rate: {source.sample_rate}",
             f"          bits_per_sample: {bps}",
             f"          total_samples_in_stream: {source.frames}",
@@ -273,7 +264,6 @@ def _codec_block(policy, source: Source, bits_override: int | None = None,
         "codec_config_metadata {",
         f"  codec_config_id: {CODEC_CONFIG_ID}",
         "  codec_config {",
-        "    codec_id: CODEC_ID_LPCM",
         "    num_samples_per_frame: 1024",
         "    decoder_config_lpcm {",
         "      sample_format_flags: LPCM_LITTLE_ENDIAN",
@@ -289,7 +279,6 @@ def _element_block(source: Source, element_id: int, sub_base: int) -> list[str]:
     if source.kind == "bed":
         bed = BEDS[source.layout]
         n_sub = len(bed.substreams)
-        n_coupled = sum(1 for s in bed.substreams if s.coupled)
         ids = ", ".join(str(sub_base + i) for i in range(n_sub))
         return [
             "audio_element_metadata {",
@@ -306,8 +295,6 @@ def _element_block(source: Source, element_id: int, sub_base: int) -> list[str]:
             "        output_gain_is_present_flag: 0",
             "        recon_gain_is_present_flag: 0",
             "        reserved_a: 0",
-            f"        substream_count: {n_sub}",
-            f"        coupled_substream_count: {n_coupled}",
             "      }",
             "    ]",
             "  }",
@@ -324,7 +311,6 @@ def _element_block(source: Source, element_id: int, sub_base: int) -> list[str]:
         f"  codec_config_id: {CODEC_CONFIG_ID}",
         f"  audio_substream_ids: [{ids}]",
         "  ambisonics_config {",
-        "    ambisonics_mode: AMBISONICS_MODE_MONO",
         "    ambisonics_mono_config {",
         f"      output_channel_count: {n}",
         f"      substream_count: {n}",
@@ -422,7 +408,7 @@ def _presentation_block(pr: Presentation, idx: int, m: Manifest,
             "          param_definition_mode: 1",
             "          reserved: 0",
             "        }",
-            f"        default_mix_gain: {q78(pe.gain_db)}",
+            f"        default_mix_gain_db {{ q7_dot8: {q78(pe.gain_db)} }}",
             "      }",
             "    }",
         ]
@@ -443,7 +429,7 @@ def _presentation_block(pr: Presentation, idx: int, m: Manifest,
         "        param_definition_mode: 1",
         "        reserved: 0",
         "      }",
-        "      default_mix_gain: 0",
+        "      default_mix_gain_db { q7_dot8: 0 }",
         "    }",
         *lay_lines,
         "  }",
