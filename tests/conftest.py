@@ -19,6 +19,13 @@ import pytest
 LOOM_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = LOOM_ROOT.parent
 
+# Archived sample trees some tests read (wp1/wp1-samples, f31/f31-samples,
+# f32/f32-samples, unpacked from the WP1/F31/F32 artifact zips). Their root is
+# $SENTINEL_SAMPLES -- the same variable iamf-sentinel and iamf-sentinel-pro
+# read -- so they can live somewhere a restart does not empty; unset, the
+# historical /tmp/sentinel_build is used. Absent trees skip, naming the path.
+SAMPLES_ROOT = Path(os.environ.get("SENTINEL_SAMPLES") or "/tmp/sentinel_build")
+
 
 def find_oss_source() -> Path | None:
     """Locate an `iamf-sentinel` SOURCE checkout carrying `fixtures/`.

@@ -49,9 +49,11 @@ def test_gate_on_valid_bitstream_sample(monkeypatch):
     (Tier forced to L1/L2: Toolchain.discover falls through to the canonical
     root/$PATH by design, so the tier is pinned for determinism here; the
     l1l2+l3 tier is exercised by the toolchain-gated E2E tests.)"""
-    sample = Path("/tmp/sentinel_build/wp1/wp1-samples/stereo_iamftools.iamf")
+    from .conftest import SAMPLES_ROOT
+    sample = SAMPLES_ROOT / "wp1" / "wp1-samples" / "stereo_iamftools.iamf"
     if not sample.is_file():
-        pytest.skip("wp1 sample tree not staged")
+        pytest.skip(f"wp1 sample tree not staged at {sample.parent} "
+                    "($SENTINEL_SAMPLES)")
     monkeypatch.setattr("loom.gate._l3_toolchain", lambda root: None)
     gr = run_gate(sample, Path("/nonexistent-toolchain"))
     assert gr.tier == "l1l2"

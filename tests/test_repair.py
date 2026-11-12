@@ -6,9 +6,9 @@ Two tiers:
   with a `repair_stts` step immediately after its remux; ffmpeg-oneshot
   routes (ADR-1 encode path — correct, doc 57) compile without one.
 - Archived-fixture tests, skip-gated on the doc-60/wp1 evidence roots
-  (`/tmp/sentinel_build/f32/f32-samples` from f32-artifacts.zip,
-  `/tmp/sentinel_build/wp1/wp1-samples`, `/tmp/sentinel_build/f31/
-  f31-samples` from f31-artifacts.zip). The discriminator is doc 60's own
+  under $SENTINEL_SAMPLES (default /tmp/sentinel_build): `f32/f32-samples`
+  from f32-artifacts.zip, `wp1/wp1-samples`, `f31/f31-samples` from
+  f31-artifacts.zip. The discriminator is doc 60's own
   matrix: repairing MP4Box's `fresh` output must reproduce the archived
   `conform` variant byte-for-byte — the row proven sample-exact in BOTH
   reference ecosystems.
@@ -24,20 +24,21 @@ import pytest
 
 from loom.repair import RepairError, repair_stts
 
-from .conftest import fake_mp4
+from .conftest import SAMPLES_ROOT, fake_mp4
 
-F32_ROOT = Path("/tmp/sentinel_build/f32/f32-samples")
-WP1_ROOT = Path("/tmp/sentinel_build/wp1/wp1-samples")
-F31_ROOT = Path("/tmp/sentinel_build/f31/f31-samples")
+F32_ROOT = SAMPLES_ROOT / "f32" / "f32-samples"
+WP1_ROOT = SAMPLES_ROOT / "wp1" / "wp1-samples"
+F31_ROOT = SAMPLES_ROOT / "f31" / "f31-samples"
 
 needs_f32 = pytest.mark.skipif(
-    not F32_ROOT.is_dir(), reason="f32-artifacts fixtures not staged")
+    not F32_ROOT.is_dir(),
+    reason=f"f32-artifacts fixtures not staged at {F32_ROOT} ($SENTINEL_SAMPLES)")
 needs_wp1 = pytest.mark.skipif(
     not (WP1_ROOT / "youtube_candidate_5dot1.mp4").is_file(),
-    reason="wp1-samples not staged")
+    reason=f"wp1-samples not staged at {WP1_ROOT} ($SENTINEL_SAMPLES)")
 needs_f31 = pytest.mark.skipif(
     not (F31_ROOT / "ffmpeg-remux.mp4").is_file(),
-    reason="f31-samples not staged")
+    reason=f"f31-samples not staged at {F31_ROOT} ($SENTINEL_SAMPLES)")
 
 
 def _sha(p: Path) -> str:

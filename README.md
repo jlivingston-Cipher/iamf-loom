@@ -324,7 +324,7 @@ expects this layout inside it:
 | `encoder_main` / `decoder_main` (iamf-tools) | primary IAMF encoder + render oracle | `src/build-iamf/` |
 | FFmpeg | the Opus A/V one-shot route | `bin/ffmpeg-install/bin/ffmpeg` |
 | GPAC `MP4Box` | all MP4 remux | `bin/MP4Box`, else found on `PATH` |
-| `sentinel-dsp` | BS.1770-4 loudness measurement kernel | `bin/sentinel-dsp`, else `$SENTINEL_DSP`, else `PATH` |
+| `sentinel-dsp` | BS.1770-4 loudness measurement kernel | `$SENTINEL_DSP` when it names a binary, else `bin/sentinel-dsp`, else `PATH` |
 
 A missing tool is an actionable error naming the exact path Loom looked for —
 run any manifest through `loom run` and it will tell you what's absent.
@@ -358,6 +358,11 @@ cmake -S sentinel-dsp -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
 cp build/sentinel-dsp "$SENTINEL_TOOLCHAIN/bin/sentinel-dsp"
 ```
 
+**On macOS**, the corpus repo's
+[`macos/complete_toolchain.sh`](https://github.com/jlivingston-Cipher/iamf-adm-corpus/blob/main/macos/README.md)
+adds the kernel, libiamf's `iamfdec`, FFmpeg, MP4Box and a video donor to a root that already
+holds iamf-tools' own CMake build — everything `LOOM_REQUIRE_TOOLCHAIN=1` asks for.
+
 Note: `SENTINEL_DSP=off` is `iamf-sentinel-pro`'s escape hatch to its numpy
 reference path — it deliberately does **not** reroute Loom, which requires the
 kernel for measurement (a present-but-broken kernel is an execution error,
@@ -390,7 +395,10 @@ The second variable asks for the whole toolchain, not only the encoder: the run 
 the same way, naming each missing part, when the root has an encoder but lacks `decoder_main`,
 the `sentinel-dsp` loudness kernel, FFmpeg (`bin/ffmpeg-install/bin/ffmpeg`), MP4Box, a video
 donor (`LOOM_TEST_VIDEO`, any MP4 whose H.264 track can be stream-copied) or numpy. A pass
-with the variable set therefore means every encode route ran.
+with the variable set therefore means every encode route ran. Seven tests also read archived
+sample trees (`wp1/wp1-samples`, `f31/f31-samples`, `f32/f32-samples`) under
+`$SENTINEL_SAMPLES` (default `/tmp/sentinel_build`, the same variable the validator's suites
+read); without them those tests skip and say where they looked.
 
 ## How it works (the guarantees)
 

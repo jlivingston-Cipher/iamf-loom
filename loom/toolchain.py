@@ -61,7 +61,8 @@ def binary(root: Path | None, tool: str) -> Path:
          else f"no toolchain configured for `{tool}`")
         + " — set --toolchain, "
         "$LOOM_TOOLCHAIN or $SENTINEL_TOOLCHAIN to a root built per "
-        "wp3-scripts/build_toolchain.sh (+ toolchain-addendum.sh)"
+        "iamf-adm-corpus's build_toolchain.sh (on macOS, completed by its "
+        "macos/complete_toolchain.sh)"
         + (" — the sentinel-dsp kernel builds via `cmake -S "
            "sentinel-pro/sentinel-dsp` and may also be named by "
            "$SENTINEL_DSP or found on PATH" if tool == "sentinel-dsp" else "")

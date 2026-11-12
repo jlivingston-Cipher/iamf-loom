@@ -127,7 +127,13 @@ GAIN_DISCRIM = (
 
 
 @needs_toolchain
-def test_element_gain_discrimination(tmp_path):
+def test_element_gain_discrimination(tmp_path, monkeypatch):
+    # Measure with the kernel the toolchain root carries, found by Loom's own
+    # lookup (F34: one conformant engine) -- not whatever sentinel-pro would
+    # find on its own, which before IA-0074 was $SENTINEL_DSP / PATH only and
+    # fell back to its numpy reference beside a built kernel.
+    from loom.toolchain import binary
+    monkeypatch.setenv("SENTINEL_DSP", str(binary(toolchain_root(), "sentinel-dsp")))
     _m, _plan, _ex, res = run_manifest(
         tmp_path, GAIN_DISCRIM,
         stems=lambda p: _write_stems(p, ("vo_en.wav",)))
